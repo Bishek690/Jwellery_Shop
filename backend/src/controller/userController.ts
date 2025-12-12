@@ -4,7 +4,7 @@ import { User, UserRole } from "../entity/User";
 import { Repository } from "typeorm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { sendAccountCreatedEmail } from "../utils/emailService";
+import { sendAccountCreatedEmail, sendWelcomeEmail } from "../utils/emailService";
 
 const userRepo = (): Repository<User> => AppDataSource.getRepository(User);
 
@@ -13,6 +13,7 @@ const omitPassword = (user: User) => {
   return rest;
 };
 
+// Helper function to generate a random password
 function generateRandomPassword(length = 10) {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
   let res = "";
@@ -20,6 +21,7 @@ function generateRandomPassword(length = 10) {
   return res;
 }
 
+// User login
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
@@ -66,11 +68,13 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
+// Get all users
 export const getUsers = async (_req: Request, res: Response) => {
   const users = await userRepo().find();
   res.json(users.map(omitPassword));
 };
 
+// Get user by ID
 export const getUser = async (req: Request, res: Response) => {
   try {
     const user = await userRepo().findOneBy({ id: req.params.id });
@@ -95,6 +99,7 @@ export const createUser = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Email or phone already in use" });
     }
     if (!password) return res.status(400).json({ message: "Password is required" });
+    
     const hashed = await bcrypt.hash(password, 10);
     const user = userRepo().create({
       name,
@@ -104,8 +109,24 @@ export const createUser = async (req: Request, res: Response) => {
       role,
       mustChangePassword: false,
     });
+    
     await userRepo().save(user);
-    res.status(201).json({ message: "User created successfully", user: omitPassword(user) });
+
+    // Send welcome email to the new customer
+    try {
+      console.log(`Attempting to send welcome email to ${email}...`);
+      await sendWelcomeEmail({ to: email, name, email });
+      console.log(`Welcome email sent successfully to ${email}`);
+    } catch (mailErr: any) {
+      console.error("Failed to send welcome email:", mailErr);
+      // Don't fail the registration if email fails, just log it
+    }
+
+    res.status(201).json({ 
+      message: "User created successfully", 
+      user: omitPassword(user),
+      emailSent: true // Indicate that welcome email was attempted
+    });
   } catch (e: any) {
     res.status(400).json({ message: "Error creating user", error: e.message ?? e });
   }
@@ -164,6 +185,7 @@ export const createUserByAdmin = async (req: Request, res: Response) => {
   }
 };
 
+// Update user
 export const updateUser = async (req: Request, res: Response) => {
   const { name, email, phone, password, role } = req.body;
   const user = await userRepo().findOneBy({ id: req.params.id });
@@ -182,6 +204,7 @@ export const updateUser = async (req: Request, res: Response) => {
   res.json(omitPassword(user));
 };
 
+// Change password
 export const changePassword = async (req: Request, res: Response) => {
   const userId = (req as any).user?.id;
   const { currentPassword, newPassword } = req.body;
@@ -223,6 +246,7 @@ export const changePassword = async (req: Request, res: Response) => {
   }
 };
 
+// Delete user by ID
 export const deleteUser = async (req: Request, res: Response) => {
   const user = await userRepo().findOneBy({ id: req.params.id });
   if (!user) return res.status(404).json({ message: "User not found" });
