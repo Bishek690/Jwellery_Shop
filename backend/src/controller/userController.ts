@@ -246,6 +246,63 @@ export const changePassword = async (req: Request, res: Response) => {
   }
 };
 
+// Get current user profile
+export const getMe = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    const user = await userRepo().findOneBy({ id: userId });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({
+      message: "User profile retrieved successfully",
+      user: omitPassword(user)
+    });
+  } catch (e: any) {
+    return res.status(500).json({
+      message: "Failed to get user profile",
+      error: e.message ?? e
+    });
+  }
+};
+
+// User logout
+export const logout = async (req: Request, res: Response) => {
+  try {
+    // Check if user is authenticated
+    const user = (req as any).user;
+    if (!user) {
+      return res.status(401).json({
+        message: "User not logged in",
+        success: false
+      });
+    }
+
+    // Clear the JWT cookie
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict"
+    });
+
+    return res.status(200).json({ 
+      message: "Logged out successfully",
+      success: true 
+    });
+  } catch (e: any) {
+    return res.status(500).json({
+      message: "Logout failed",
+      error: e.message ?? e
+    });
+  }
+};
+
 // Delete user by ID
 export const deleteUser = async (req: Request, res: Response) => {
   const user = await userRepo().findOneBy({ id: req.params.id });

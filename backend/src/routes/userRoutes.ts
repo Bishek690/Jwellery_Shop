@@ -1,6 +1,8 @@
 import { Router } from "express";
 import {
   login,
+  logout,
+  getMe,
   getUsers,
   getUser,
   createUser,
@@ -14,7 +16,13 @@ import { validateCreateUser, validateUpdateUser } from "../validators/userValida
 
 const router = Router();
 
+// Authentication routes
 router.post("/login", login);
+router.post("/logout", logout);
+
+// Get current user profile
+router.get("/me", authenticate, getMe);
+
 router.post("/change-password", authenticate, changePassword);
 
 router.get("/", authenticate, getUsers);

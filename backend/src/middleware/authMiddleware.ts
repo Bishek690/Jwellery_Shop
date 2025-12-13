@@ -10,22 +10,50 @@ export interface AuthRequest extends Request {
 
 export const authenticate = (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
-  // Support Bearer token in header or cookie named 'token'
   let token: string | undefined;
+
+  // Priority 1: Check Bearer token in Authorization header
   if (authHeader && authHeader.startsWith("Bearer ")) {
     token = authHeader.split(" ")[1];
-  } else {
+  }
+  // Priority 2: Check cookie if no Bearer token
+  else {
     token = (req as any).cookies?.token;
   }
 
-  if (!token) return res.status(401).json({ message: "Unauthorized" });
+  if (!token) {
+    return res.status(401).json({ 
+      message: "Access denied. No token provided.",
+      error: "Authentication required"
+    });
+  }
 
   try {
-    const secret = process.env.JWT_SECRET || "change_this_secret";
+    const secret = process.env.JWT_SECRET || "your-secret-key";
     const payload = jwt.verify(token, secret as jwt.Secret) as any;
-    req.user = { id: payload.id, role: payload.role };
+    
+    // Add user info to request
+    req.user = { 
+      id: payload.id, 
+      role: payload.role 
+    };
+    
     next();
   } catch (e: any) {
-    return res.status(401).json({ message: "Invalid token", error: e.message ?? e });
+    // Handle different JWT errors
+    let errorMessage = "Invalid token";
+    
+    if (e.name === "TokenExpiredError") {
+      errorMessage = "Token expired";
+    } else if (e.name === "JsonWebTokenError") {
+      errorMessage = "Invalid token format";
+    } else if (e.name === "NotBeforeError") {
+      errorMessage = "Token not active yet";
+    }
+    
+    return res.status(401).json({ 
+      message: errorMessage,
+      error: e.message ?? e
+    });
   }
 };
