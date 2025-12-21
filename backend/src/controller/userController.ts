@@ -5,6 +5,7 @@ import { Repository } from "typeorm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { sendAccountCreatedEmail, sendWelcomeEmail } from "../utils/emailService";
+import { AuthRequest } from "../middleware/authMiddleware";
 
 const userRepo = (): Repository<User> => AppDataSource.getRepository(User);
 
@@ -273,32 +274,38 @@ export const getMe = async (req: Request, res: Response) => {
 };
 
 // User logout
-export const logout = async (req: Request, res: Response) => {
+export const logout = async (req: AuthRequest, res: Response) => {
   try {
-    // Check if user is authenticated
-    const user = (req as any).user;
-    if (!user) {
-      return res.status(401).json({
-        message: "User not logged in",
-        success: false
-      });
-    }
-
-    // Clear the JWT cookie
+    console.log("Logout request received, user:", req.user?.id);
+    
+    // Clear the JWT cookie with the exact same parameters as when it was set
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict"
+      sameSite: "strict",
+      // Don't specify maxAge for clearCookie, and path defaults to "/"
     });
+
+    console.log("JWT cookie cleared successfully");
 
     return res.status(200).json({ 
       message: "Logged out successfully",
       success: true 
     });
   } catch (e: any) {
-    return res.status(500).json({
-      message: "Logout failed",
-      error: e.message ?? e
+    console.error("Logout error:", e);
+    
+    // Even if there's an error, clear the cookie
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+    
+    return res.status(200).json({
+      message: "Logged out successfully",
+      success: true,
+      note: "Token cleared despite error"
     });
   }
 };

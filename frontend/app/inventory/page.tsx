@@ -4,6 +4,7 @@ import { useState } from "react"
 import { InventoryStats } from "@/components/inventory-stats"
 import { InventoryProductTable } from "@/components/inventory-product-table"
 import { InventoryAddProduct } from "@/components/inventory-add-product"
+import { SimpleProtectedRoute } from "@/components/admin/shared/simple-protected-route"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Package, Plus, ArrowLeft, Download, Upload, Gem, Clock } from "lucide-react"
@@ -59,7 +60,8 @@ export default function InventoryPage() {
   })
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50">
+    <SimpleProtectedRoute allowedRoles={["admin", "staff"]}>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50">
       {/* Header */}
       <header className="glass-card border-b border-orange-200/50 sticky top-0 z-50">
         <div className="container mx-auto px-6 py-4">
@@ -145,6 +147,7 @@ export default function InventoryPage() {
           </>
         )}
       </main>
-    </div>
+      </div>
+    </SimpleProtectedRoute>
   )
 }

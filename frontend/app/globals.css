@@ -241,7 +241,7 @@
 }
 
 .luxury-gradient {
-  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  background: linear-gradient(135deg, #f97316 0%, #f59e0b 100%);
 }
 
 .premium-shimmer {
@@ -260,33 +260,176 @@
   animation: shimmer 2s infinite;
 }
 
-/* Unique hover effects */
-.hover-lift {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* Admin Interface Custom Styles */
+.luxury-gradient {
+  background: linear-gradient(135deg, #f97316 0%, #f59e0b 100%);
+  box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
 }
 
-.hover-lift:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-.hover-glow:hover {
-  box-shadow: 0 0 30px rgba(139, 92, 246, 0.4);
-}
-
-/* Professional status indicators */
-.status-indicator {
+.gold-shimmer {
   position: relative;
+  overflow: hidden;
 }
 
-.status-indicator::before {
-  content: "";
+.gold-shimmer::before {
+  content: '';
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #10b981;
-  animation: pulse-ring 2s infinite;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(245, 158, 11, 0.1),
+    transparent
+  );
+  animation: shimmer 3s infinite;
+}
+
+/* Scrollbar Styles */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(245, 158, 11, 0.3) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(245, 158, 11, 0.3);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(245, 158, 11, 0.5);
+}
+
+/* Custom Animations */
+@keyframes shimmer {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); }
+  50% { box-shadow: 0 6px 25px rgba(245, 158, 11, 0.5); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes slide-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Animation Classes */
+.animate-glow {
+  animation: glow 3s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-slide-in-up {
+  animation: slide-in-up 0.6s ease-out forwards;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.3s ease-out forwards;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+.animate-fade-in-scale {
+  animation: fade-in-scale 0.4s ease-out forwards;
+}
+
+/* Responsive Design Helpers */
+.from-orange-25 {
+  --tw-gradient-from: #fefbf3 var(--tw-gradient-from-position);
+  --tw-gradient-to: rgba(254, 251, 243, 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.to-amber-25 {
+  --tw-gradient-to: #fefbf0 var(--tw-gradient-to-position);
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .glass-card {
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  }
+  
+  .luxury-gradient {
+    box-shadow: 0 2px 10px rgba(249, 115, 22, 0.25);
+  }
 }

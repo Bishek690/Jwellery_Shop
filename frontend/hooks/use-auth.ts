@@ -84,16 +84,27 @@ export const useAuth = () => {
 
   const logout = async () => {
     try {
+      // Set loading state
+      setAuthState(prev => ({ ...prev, isLoading: true }));
+      
+      // Try to call the backend to clear the HTTP-only cookie
       await userAPI.logout();
+      console.log("Server-side logout successful - token cleared");
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error("Server-side logout error (will still clear local state):", error);
+      // Don't throw the error since we'll clear local state anyway
     } finally {
+      // Always clear local state and redirect
       setAuthState({
         user: null,
         isLoading: false,
         isAuthenticated: false,
       });
-      router.push("/auth/login");
+      
+      console.log("Local authentication state cleared");
+      
+      // Force a page reload to ensure all state is cleared
+      window.location.href = "/auth/login";
     }
   };
 

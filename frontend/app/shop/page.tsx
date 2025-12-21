@@ -1,18 +1,68 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { CustomerNavbar } from "@/components/customer-navbar"
 import { ProductGrid } from "@/components/product-grid"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Filter, X } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function ShopPage() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [priceRange, setPriceRange] = useState("all")
   const [sortBy, setSortBy] = useState("featured")
   const [showFilters, setShowFilters] = useState(false)
+  const router = useRouter()
+  const { user, isAuthenticated, isLoading } = useAuth()
+
+  // Check if user is authenticated and is a customer
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        // Redirect to login if not authenticated
+        router.push("/auth/login")
+        return
+      }
+      
+      if (user && user.role !== "customer") {
+        // Redirect non-customers to their appropriate dashboard
+        switch (user.role) {
+          case "admin":
+            router.push("/admin")
+            break
+          case "staff":
+            router.push("/admin/dashboard")
+            break
+          case "accountant":
+            router.push("/analytics")
+            break
+          default:
+            router.push("/auth/login")
+            break
+        }
+      }
+    }
+  }, [isAuthenticated, user, isLoading, router])
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show nothing while redirecting
+  if (!isAuthenticated || (user && user.role !== "customer")) {
+    return null
+  }
 
   const categories = [
     { value: "all", label: "All Categories" },

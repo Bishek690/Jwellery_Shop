@@ -18,7 +18,9 @@ const router = Router();
 
 // Authentication routes
 router.post("/login", login);
-router.post("/logout", logout);
+router.post("/logout", authenticate, logout);
+// Fallback logout without authentication (in case token is invalid)
+router.post("/logout-force", logout);
 
 // Get current user profile
 router.get("/me", authenticate, getMe);

@@ -56,9 +56,31 @@ export const userAPI = {
   },
 
   logout: async () => {
-    return apiClient.request('/users/logout', {
-      method: 'POST',
-    });
+    try {
+      // Try authenticated logout first
+      const response = await apiClient.request('/users/logout', {
+        method: 'POST',
+      });
+      
+      console.log("Authenticated logout successful");
+      return response;
+    } catch (error) {
+      console.warn('Authenticated logout failed, trying force logout:', error);
+      
+      try {
+        // If authenticated logout fails, try force logout
+        const response = await apiClient.request('/users/logout-force', {
+          method: 'POST',
+        });
+        
+        console.log("Force logout successful");
+        return response;
+      } catch (forceError) {
+        console.error('Both logout attempts failed:', forceError);
+        // Still throw so the frontend handles it appropriately
+        throw forceError;
+      }
+    }
   },
 
   // User registration (public)

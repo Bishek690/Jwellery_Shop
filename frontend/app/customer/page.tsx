@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { CustomerNavbar } from "@/components/customer-navbar"
-import { LandingNavbar } from "@/components/landing-navbar"
 import { LandingFooter } from "@/components/landing-footer"
 import {
   Search,
@@ -28,18 +27,14 @@ import {
 import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
 
-export default function CustomerLandingPage() {
+export default function CustomerPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
   const { user, isAuthenticated } = useAuth()
 
-  // Handle shop navigation with authentication check
+  // Handle shop navigation - since this is customer page, user should be authenticated
   const handleShopNavigation = () => {
-    if (!isAuthenticated || (user && user.role !== "customer")) {
-      router.push("/auth/login")
-    } else {
-      router.push("/shop")
-    }
+    router.push("/shop")
   }
 
   const featuredProducts = [
@@ -165,12 +160,30 @@ export default function CustomerLandingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50">
-      {/* Navigation - Conditional based on authentication */}
-      {isAuthenticated && user?.role === "customer" ? (
-        <CustomerNavbar />
-      ) : (
-        <LandingNavbar />
-      )}
+      {/* Customer Navigation */}
+      <CustomerNavbar />
+
+      {/* Welcome Section for Logged-in Customer */}
+      <section className="py-6 sm:py-8 bg-gradient-to-r from-orange-100/50 to-amber-100/50">
+        <div className="container mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="text-center animate-slide-in-up">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold font-serif text-gray-900 mb-2">
+              Welcome back, {user?.name || 'Valued Customer'}! 👑
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600 mb-4">
+              Discover exclusive collections curated just for you
+            </p>
+            <Button
+              onClick={handleShopNavigation}
+              size="lg"
+              className="luxury-gradient hover:shadow-xl transition-all duration-300 text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-3"
+            >
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              Shop Now
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* Hero Section */}
       <section className="relative py-12 sm:py-16 lg:py-20 overflow-hidden">
@@ -617,6 +630,7 @@ export default function CustomerLandingPage() {
         </div>
       </section>
 
+      {/* Footer */}
       <LandingFooter />
     </div>
   )

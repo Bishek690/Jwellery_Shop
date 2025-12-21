@@ -4,6 +4,7 @@ import { useState } from "react"
 import { POSProductGrid } from "@/components/pos-product-grid"
 import { POSCart } from "@/components/pos-cart"
 import { POSCustomerSelector } from "@/components/pos-customer-selector"
+import { SimpleProtectedRoute } from "@/components/admin/shared/simple-protected-route"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Crown, Gem, ArrowLeft, Clock, TrendingUp } from "lucide-react"
@@ -74,7 +75,8 @@ export default function POSSystem() {
   })
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50">
+    <SimpleProtectedRoute allowedRoles={["admin", "staff"]}>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50">
       {/* Header */}
       <header className="glass-card border-b border-orange-200/50 sticky top-0 z-50">
         <div className="container mx-auto px-6 py-4">
@@ -169,6 +171,7 @@ export default function POSSystem() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </SimpleProtectedRoute>
   )
 }
