@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { useAuth } from "@/hooks/use-auth"
 import {
   LayoutDashboard,
   Package,
@@ -53,8 +54,8 @@ export function AdminSidebar({ className, isMobile = false, onClose }: AdminSide
   const pathname = usePathname()
   const router = useRouter()
 
-  // Temporary mock user - replace with actual useAuth when fixed
-  const user = { role: "admin", name: "Admin User", email: "admin@jewelry.com" }
+  // Get authenticated user
+  const { user, logout } = useAuth()
 
   // Menu items with proper navigation and permissions
   const menuItems: MenuItem[] = [
@@ -89,6 +90,29 @@ export function AdminSidebar({ className, isMobile = false, onClose }: AdminSide
       badge: 5,
       badgeColor: "secondary",
       permission: ["admin", "staff", "accountant"],
+    },
+    {
+      id: "user-management",
+      label: "User Management",
+      icon: User,
+      href: "#",
+      permission: ["admin"],
+      children: [
+        {
+          id: "create-user",
+          label: "Create User",
+          icon: User,
+          href: "/admin/users/create",
+          permission: ["admin"],
+        },
+        {
+          id: "manage-users",
+          label: "Manage Users",
+          icon: Users,
+          href: "/admin/users",
+          permission: ["admin"],
+        },
+      ],
     },
     {
       id: "analytics",
@@ -126,10 +150,9 @@ export function AdminSidebar({ className, isMobile = false, onClose }: AdminSide
     }
   }
 
-  // Handle logout - simplified version
-  const handleLogout = () => {
-    // For now just redirect to login
-    router.push("/auth/login")
+  // Handle logout using auth hook
+  const handleLogout = async () => {
+    await logout()
   }
 
   // Toggle group expansion
@@ -143,8 +166,28 @@ export function AdminSidebar({ className, isMobile = false, onClose }: AdminSide
 
   // Check if current path matches menu item
   const isActive = (href: string) => {
+    // Special case for admin dashboard
     if (href === "/admin" && pathname === "/admin") return true
-    if (href !== "/admin" && pathname.startsWith(href)) return true
+    
+    // Special case for website/home - only active when exactly on "/"
+    if (href === "/" && pathname === "/") return true
+    
+    // Skip hash links
+    if (href === "#") return false
+    
+    // For user management routes, use exact matching to prevent conflicts
+    if (href === "/admin/users" && pathname === "/admin/users") return true
+    if (href === "/admin/users/create" && pathname === "/admin/users/create") return true
+    
+    // For other admin routes, check if path starts with href but not if there's a more specific route
+    if (href !== "/admin" && href !== "/" && href !== "#") {
+      // Exact match first
+      if (pathname === href) return true
+      
+      // For parent routes, only match if it starts with href + "/" to avoid substring matches
+      if (pathname.startsWith(href + "/") && href !== "/admin/users") return true
+    }
+    
     return false
   }
 
@@ -274,7 +317,7 @@ export function AdminSidebar({ className, isMobile = false, onClose }: AdminSide
                   <Crown className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-lg text-gray-900">Jewelry Admin</h2>
+                  <h2 className="font-bold text-lg text-gray-900">Jewelry Shop</h2>
                   <p className="text-sm text-gray-600 flex items-center gap-1">
                     <Gem className="h-3 w-3 text-orange-500" />
                     Management System
