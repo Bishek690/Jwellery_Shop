@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { AdminSidebar } from "./sidebar"
-import { SimpleProtectedRoute } from "../shared/simple-protected-route"
+import { SimpleProtectedRoute } from "../shared/admn-protected-route"
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
 import { cn } from "@/lib/utils"

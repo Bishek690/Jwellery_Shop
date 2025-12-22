@@ -1,5 +1,5 @@
 import { AnalyticsCharts } from "@/components/analytics-charts"
-import { SimpleProtectedRoute } from "@/components/admin/shared/simple-protected-route"
+import { SimpleProtectedRoute } from "@/components/admin/shared/admn-protected-route"
 
 export default function AnalyticsPage() {
   return (

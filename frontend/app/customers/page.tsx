@@ -1,5 +1,5 @@
 import { CustomerTable } from "@/components/customer-table"
-import { SimpleProtectedRoute } from "@/components/admin/shared/simple-protected-route"
+import { SimpleProtectedRoute } from "@/components/admin/shared/admn-protected-route"
 
 export default function CustomersPage() {
   return (

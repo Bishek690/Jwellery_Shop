@@ -65,13 +65,6 @@ export function AdminSidebar({ className, isMobile = false, onClose }: AdminSide
       href: "/admin",
       permission: ["admin", "staff", "accountant"],
     },
-    // {
-    //   id: "staff-dashboard",
-    //   label: "Staff Dashboard",
-    //   icon: Crown,
-    //   href: "/admin/dashboard",
-    //   permission: ["admin", "staff"],
-    // },
     {
       id: "inventory",
       label: "Inventory",
@@ -307,30 +300,6 @@ export function AdminSidebar({ className, isMobile = false, onClose }: AdminSide
             </Button>
           </div>
         </div>
-
-        {/* User Info */}
-        {(!collapsed || isMobile) && user && (
-          <div className="p-4 bg-gradient-to-r from-orange-25 to-amber-25 border-b border-orange-200/30">
-            <div className="flex items-center gap-3 animate-fade-in-scale">
-              <div className="w-10 h-10 rounded-full luxury-gradient flex items-center justify-center shadow-md">
-                <User className="h-5 w-5 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate capitalize">
-                  {user.name || user.email?.split('@')[0] || 'Admin'}
-                </p>
-                <p className="text-xs text-gray-600 truncate flex items-center gap-1">
-                  <Badge variant="secondary" className="text-xs px-2 py-0 bg-orange-100 text-orange-700">
-                    {user.role}
-                  </Badge>
-                </p>
-              </div>
-              <Button variant="ghost" size="sm" className="hover:bg-orange-100 p-1.5 rounded-full">
-                <Bell className="h-4 w-4 text-gray-600" />
-              </Button>
-            </div>
-          </div>
-        )}
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto scrollbar-thin scrollbar-thumb-orange-200">
