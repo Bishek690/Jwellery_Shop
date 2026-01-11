@@ -127,7 +127,8 @@ export default function CreateUserPage() {
         return {
           icon: UserCheck,
           gradient: "from-orange-500 to-amber-600",
-          bgColor: "from-orange-50 to-amber-50",
+          bgColor: "bg-orange-50",
+          borderColor: "border-orange-200",
           color: "text-orange-800",
           permissions: [
             "Access to inventory management",
@@ -140,7 +141,8 @@ export default function CreateUserPage() {
         return {
           icon: Calculator,
           gradient: "from-green-500 to-emerald-600",
-          bgColor: "from-emerald-50 to-green-50",
+          bgColor: "bg-emerald-50",
+          borderColor: "border-emerald-200",
           color: "text-emerald-800",
           permissions: [
             "View analytics and reports",
@@ -153,7 +155,8 @@ export default function CreateUserPage() {
         return {
           icon: User,
           gradient: "from-gray-500 to-slate-600",
-          bgColor: "from-gray-50 to-slate-50",
+          bgColor: "bg-gray-50",
+          borderColor: "border-gray-200",
           color: "text-gray-800",
           permissions: []
         }
@@ -164,27 +167,9 @@ export default function CreateUserPage() {
   const RoleIcon = roleInfo.icon
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 p-6">
-      <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button asChild variant="ghost" size="sm" className="hover:bg-orange-50">
-            <Link href="/admin">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
-            </Link>
-          </Button>
-          <div className="flex items-center gap-3">
-            <div className={`p-2 bg-gradient-to-br ${roleInfo.gradient} rounded-xl shadow-lg`}>
-              <RoleIcon className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Create User Account</h1>
-              <p className="text-sm text-gray-600">Add a new staff member or accountant to the system</p>
-            </div>
-          </div>
-        </div>
+    <>
 
+      <div className="max-w-3xl mx-auto space-y-6">
         {/* Success Message with User Details */}
         {createdUser && (
           <Card className="bg-green-50 border-green-200">
@@ -225,13 +210,13 @@ export default function CreateUserPage() {
                 <div className="p-3 bg-amber-100 border border-amber-300 rounded-lg">
                   <Label className="text-amber-800 font-medium">Temporary Password</Label>
                   <div className="flex items-center gap-2 mt-1">
-                    <code className="px-2 py-1 bg-amber-200 rounded text-amber-800 font-mono text-sm">
+                    <code className="px-2 py-1 bg-white rounded text-amber-800 font-mono text-sm border border-amber-300">
                       {createdUser.temporaryPassword}
                     </code>
                     <button
                       type="button"
                       onClick={() => navigator.clipboard.writeText(createdUser.temporaryPassword)}
-                      className="text-xs px-2 py-1 border border-amber-300 rounded hover:bg-amber-200 transition-colors"
+                      className="text-xs px-2 py-1 bg-white border border-amber-300 rounded hover:bg-amber-50 transition-colors"
                     >
                       Copy
                     </button>
@@ -246,7 +231,7 @@ export default function CreateUserPage() {
                 <Button onClick={handleCreateAnother} variant="outline" size="sm">
                   Create Another User
                 </Button>
-                <Button asChild size="sm">
+                <Button asChild size="sm" className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white">
                   <Link href="/admin/users">
                     Manage Users
                   </Link>
@@ -257,17 +242,17 @@ export default function CreateUserPage() {
         )}
 
         {/* Create User Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              User Information
+        <Card className="bg-white shadow-lg">
+          <CardHeader className="bg-white border-b">
+            <CardTitle className="flex items-center gap-2 text-gray-900">
+              <User className="h-5 w-5 text-orange-600" />
+              Create New User Account
             </CardTitle>
             <CardDescription>
               Enter the user's details and select their role. A temporary password will be generated automatically.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="bg-white pt-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Error Alert */}
               {error && (
@@ -288,7 +273,7 @@ export default function CreateUserPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Name */}
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name *</Label>
+                  <Label htmlFor="name" className="text-gray-700">Full Name *</Label>
                   <Input
                     id="name"
                     name="name"
@@ -296,19 +281,19 @@ export default function CreateUserPage() {
                     placeholder="Enter user's full name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="focus:border-orange-400 focus:ring-orange-400/20"
+                    className="bg-white focus:border-orange-400 focus:ring-orange-400/20"
                     required
                   />
                 </div>
 
                 {/* Role */}
                 <div className="space-y-2">
-                  <Label htmlFor="role">Role *</Label>
+                  <Label htmlFor="role" className="text-gray-700">Role *</Label>
                   <Select value={formData.role} onValueChange={handleRoleChange}>
-                    <SelectTrigger className="focus:border-orange-400 focus:ring-orange-400/20">
+                    <SelectTrigger className="bg-white focus:border-orange-400 focus:ring-orange-400/20">
                       <SelectValue placeholder="Select user role" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white">
                       <SelectItem value="staff">
                         <div className="flex items-center gap-2">
                           <UserCheck className="h-4 w-4 text-orange-600" />
@@ -327,17 +312,17 @@ export default function CreateUserPage() {
 
                 {/* Email */}
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email Address *</Label>
+                  <Label htmlFor="email" className="text-gray-700">Email Address *</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
                       id="email"
                       name="email"
                       type="email"
-                      placeholder="Enter email address"
+                      placeholder="user@example.com"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className="pl-10 focus:border-orange-400 focus:ring-orange-400/20"
+                      className="pl-10 bg-white focus:border-orange-400 focus:ring-orange-400/20"
                       required
                     />
                   </div>
@@ -345,17 +330,17 @@ export default function CreateUserPage() {
 
                 {/* Phone */}
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number *</Label>
+                  <Label htmlFor="phone" className="text-gray-700">Phone Number *</Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
                       id="phone"
                       name="phone"
                       type="tel"
-                      placeholder="Enter phone number"
+                      placeholder="+1 (555) 000-0000"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className="pl-10 focus:border-orange-400 focus:ring-orange-400/20"
+                      className="pl-10 bg-white focus:border-orange-400 focus:ring-orange-400/20"
                       required
                     />
                   </div>
@@ -364,14 +349,13 @@ export default function CreateUserPage() {
 
               {/* Role-specific Information */}
               {formData.role && (
-                <div className={`p-4 bg-gradient-to-r ${roleInfo.bgColor} border border-opacity-30 rounded-lg`}>
+                <div className={`p-4 ${roleInfo.bgColor} border ${roleInfo.borderColor} rounded-lg`}>
                   <h4 className={`font-medium ${roleInfo.color} mb-2 flex items-center gap-2`}>
                     <RoleIcon className="h-4 w-4" />
                     {formData.role.charAt(0).toUpperCase() + formData.role.slice(1)} Permissions & Access
                   </h4>
                   <ul className={`text-sm ${roleInfo.color} space-y-1`}>
                     <li>• A temporary password will be automatically generated</li>
-                    <li>• Login credentials will be sent to the provided email address</li>
                     <li>• User will be required to change password on first login</li>
                     {roleInfo.permissions.map((permission, index) => (
                       <li key={index}>• {permission}</li>
@@ -381,11 +365,11 @@ export default function CreateUserPage() {
               )}
 
               {/* Submit Button */}
-              <div className="flex gap-4">
+              <div className="flex gap-4 pt-4 border-t">
                 <Button 
                   type="submit" 
                   disabled={loading}
-                  className={`bg-gradient-to-r ${roleInfo.gradient} hover:opacity-90 text-white px-8`}
+                  className={`bg-gradient-to-r ${roleInfo.gradient} hover:opacity-90 text-white px-8 shadow-md`}
                 >
                   {loading ? (
                     <>
@@ -400,7 +384,7 @@ export default function CreateUserPage() {
                   )}
                 </Button>
                 
-                <Button type="button" variant="outline" onClick={() => router.back()}>
+                <Button type="button" variant="outline" onClick={() => router.back()} className="bg-white">
                   Cancel
                 </Button>
               </div>
@@ -408,6 +392,6 @@ export default function CreateUserPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </>
   )
 }

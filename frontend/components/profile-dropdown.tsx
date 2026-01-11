@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { User, LogOut, Settings, ShoppingBag, Heart, Bell } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { User, LogOut, Settings, ShoppingBag, Heart, Bell, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import Link from "next/link";
@@ -9,11 +9,24 @@ import Link from "next/link";
 export function ProfileDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
-  const handleClickOutside = () => {
-    setIsOpen(false);
-  };
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
 
   if (!isAuthenticated || !user) {
     return (
@@ -27,7 +40,7 @@ export function ProfileDropdown() {
   }
 
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <Button 
         variant="ghost" 
         size="sm" 
@@ -39,18 +52,9 @@ export function ProfileDropdown() {
       </Button>
 
       {isOpen && (
-        <>
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 z-10 bg-black/5" 
-            onClick={handleClickOutside}
-          ></div>
-          
-          {/* Dropdown */}
-          <div 
-            className="absolute right-0 top-full mt-2 w-72 sm:w-80 max-w-[90vw] bg-white rounded-lg shadow-xl border border-gray-200 z-20 animate-fade-in-scale"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div 
+          className="absolute right-0 top-full mt-2 w-72 sm:w-80 max-w-[90vw] bg-white rounded-lg shadow-xl border border-gray-200 z-50 animate-fade-in-scale"
+        >
             {/* User Info Header */}
             <div className="p-3 sm:p-4 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-orange-50">
               <div className="flex items-center space-x-2 sm:space-x-3">
@@ -64,6 +68,13 @@ export function ProfileDropdown() {
                     <span className="text-xs bg-amber-100 text-amber-800 px-1.5 sm:px-2 py-0.5 rounded-full capitalize">
                       {user.role}
                     </span>
+                    {user.mustChangePassword && (
+                      <span className="text-xs bg-red-100 text-red-800 px-1.5 sm:px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        <span className="hidden sm:inline">Password Change Required</span>
+                        <span className="sm:hidden">!</span>
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -71,6 +82,15 @@ export function ProfileDropdown() {
 
             {/* Menu Items */}
             <div className="p-1.5 sm:p-2">
+              {user.mustChangePassword && (
+                <Link href="/auth/change-password" onClick={() => setIsOpen(false)}>
+                  <button className="w-full flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 py-2 text-xs sm:text-sm text-red-700 bg-red-50 hover:bg-red-100 rounded-md transition-colors mb-1">
+                    <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                    <span className="font-medium">Change Password Required</span>
+                  </button>
+                </Link>
+              )}
+              
               <Link href="/account" onClick={() => setIsOpen(false)}>
                 <button className="w-full flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 rounded-md transition-colors">
                   <User className="w-4 h-4 flex-shrink-0" />
@@ -82,6 +102,13 @@ export function ProfileDropdown() {
                 <button className="w-full flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 rounded-md transition-colors">
                   <ShoppingBag className="w-4 h-4 flex-shrink-0" />
                   <span>My Orders</span>
+                </button>
+              </Link>
+              
+              <Link href="/cart" onClick={() => setIsOpen(false)}>
+                <button className="w-full flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 rounded-md transition-colors">
+                  <ShoppingBag className="w-4 h-4 flex-shrink-0" />
+                  <span>Cart</span>
                 </button>
               </Link>
               
@@ -98,13 +125,6 @@ export function ProfileDropdown() {
                   <span>Notifications</span>
                 </button>
               </Link>
-              
-              <Link href="/account/settings" onClick={() => setIsOpen(false)}>
-                <button className="w-full flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 rounded-md transition-colors">
-                  <Settings className="w-4 h-4 flex-shrink-0" />
-                  <span>Settings</span>
-                </button>
-              </Link>
             </div>
 
             {/* Logout Button */}
@@ -112,7 +132,7 @@ export function ProfileDropdown() {
               <button 
                 onClick={() => {
                   logout();
-                  handleClickOutside();
+                  setIsOpen(false);
                 }}
                 className="w-full flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 py-2 text-xs sm:text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
               >
@@ -120,8 +140,7 @@ export function ProfileDropdown() {
                 <span>Logout</span>
               </button>
             </div>
-          </div>
-        </>
+        </div>
       )}
     </div>
   );

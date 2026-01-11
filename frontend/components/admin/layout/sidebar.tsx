@@ -34,7 +34,9 @@ import {
 interface AdminSidebarProps {
   className?: string
   isMobile?: boolean
+  collapsed?: boolean
   onClose?: () => void
+  onToggleCollapse?: () => void
 }
 
 interface MenuItem {
@@ -48,14 +50,63 @@ interface MenuItem {
   children?: MenuItem[]
 }
 
-export function AdminSidebar({ className, isMobile = false, onClose }: AdminSidebarProps) {
-  const [collapsed, setCollapsed] = useState(false)
+export function AdminSidebar({ 
+  className, 
+  isMobile = false, 
+  collapsed = false,
+  onClose,
+  onToggleCollapse 
+}: AdminSidebarProps) {
   const [expandedGroups, setExpandedGroups] = useState<string[]>([])
+  const [customerCount, setCustomerCount] = useState<number>(0)
+  const [totalProductCount, setTotalProductCount] = useState<number>(0)
   const pathname = usePathname()
   const router = useRouter()
 
   // Get authenticated user
   const { user, logout } = useAuth()
+
+  // Fetch customer count
+  const fetchCustomerCount = async () => {
+    try {
+      const response = await fetch('/api/dashboard/customer-count', {
+        credentials: 'include',
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setCustomerCount(data.count || 0)
+      }
+    } catch (error) {
+      console.error('Failed to fetch customer count:', error)
+      setCustomerCount(0)
+    }
+  }
+
+  // Fetch product stats for total product count
+  const fetchProductStats = async () => {
+    try {
+      const response = await fetch('/api/products/stats', {
+        credentials: 'include',
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setTotalProductCount(data.totalProducts || 0)
+      }
+    } catch (error) {
+      console.error('Failed to fetch product stats:', error)
+      setTotalProductCount(0)
+    }
+  }
+
+  // Fetch counts on component mount - only run once when user becomes available
+  useEffect(() => {
+    if (user && user.id) {
+      fetchCustomerCount()
+      fetchProductStats()
+    }
+  }, [user?.id]) // Only depend on user ID to prevent re-fetching on every user object change
 
   // Menu items with proper navigation and permissions
   const menuItems: MenuItem[] = [
@@ -70,26 +121,10 @@ export function AdminSidebar({ className, isMobile = false, onClose }: AdminSide
       id: "inventory",
       label: "Inventory",
       icon: Package,
-      href: "/admin/inventory",
-      badge: 23,
-      badgeColor: "destructive",
-      permission: ["admin", "staff"],
-    },
-    {
-      id: "pos",
-      label: "POS System",
-      icon: ShoppingCart,
-      href: "/admin/pos",
-      permission: ["admin", "staff"],
-    },
-    {
-      id: "customers",
-      label: "Customers",
-      icon: Users,
-      href: "/admin/customers",
-      badge: 5,
+      href: "/inventory",
+      badge: totalProductCount > 0 ? totalProductCount : undefined,
       badgeColor: "secondary",
-      permission: ["admin", "staff", "accountant"],
+      permission: ["admin", "staff"],
     },
     {
       id: "user-management",
@@ -115,11 +150,36 @@ export function AdminSidebar({ className, isMobile = false, onClose }: AdminSide
       ],
     },
     {
+      id: "customers",
+      label: "Customers",
+      icon: Users,
+      href: "/admin/customers",
+      badge: customerCount,
+      badgeColor: "secondary",
+      permission: ["admin", "staff", "accountant"],
+    },
+    {
+      id: "orders",
+      label: "Orders",
+      icon: ShoppingCart,
+      href: "/admin/orders",
+      // badge: orderCount,
+      badgeColor: "secondary",
+      permission: ["admin", "staff"]
+    },
+    {
       id: "analytics",
       label: "Analytics",
       icon: BarChart3,
       href: "/admin/analytics",
       permission: ["admin", "staff", "accountant"],
+    },
+    {
+      id: "pos",
+      label: "POS System",
+      icon: ShoppingCart,
+      href: "/admin/pos",
+      permission: ["admin", "staff"],
     },
     {
       id: "website",
@@ -239,7 +299,7 @@ export function AdminSidebar({ className, isMobile = false, onClose }: AdminSide
               <span className="flex-1 text-left font-medium">{item.label}</span>
               
               {/* Badge */}
-              {item.badge && (
+              {item.badge !== undefined && item.badge !== null && item.badge !== 0 && (
                 <Badge 
                   variant={item.badgeColor || "secondary"} 
                   className={cn(
@@ -288,39 +348,30 @@ export function AdminSidebar({ className, isMobile = false, onClose }: AdminSide
 
   return (
     <>
-      {/* Mobile Overlay */}
-      {isMobile && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden animate-fade-in"
-          onClick={onClose}
-        />
-      )}
-
       {/* Sidebar */}
       <div
         className={cn(
-          "bg-white/95 backdrop-blur-xl border-r border-orange-200/50 h-screen flex flex-col transition-all duration-300 shadow-2xl z-50",
-          isMobile 
-            ? "fixed left-0 top-0 w-80 animate-slide-in-left" 
-            : collapsed 
-              ? "w-20 animate-slide-in-right" 
-              : "w-72 animate-slide-in-right",
+          "admin-sidebar bg-white/95 backdrop-blur-xl border-r border-orange-200/50 h-screen flex flex-col shadow-2xl",
+          // Mobile state
+          isMobile && "mobile-open",
+          // Desktop collapsed state
+          collapsed && "collapsed",
           className,
         )}
       >
         {/* Header */}
-        <div className="p-6 border-b border-orange-200/50 bg-gradient-to-r from-orange-50 to-amber-50">
+        <div className="p-4 lg:p-6 border-b border-orange-200/50 bg-gradient-to-r from-orange-50 to-amber-50">
           <div className="flex items-center justify-between">
             {(!collapsed || isMobile) && (
-              <div className="flex items-center gap-3 animate-fade-in-scale">
-                <div className="p-2.5 luxury-gradient rounded-xl shadow-lg animate-glow">
-                  <Crown className="h-6 w-6 text-white" />
+              <div className="flex items-center gap-2 lg:gap-3 animate-fade-in-scale min-w-0">
+                <div className="p-2 lg:p-2.5 luxury-gradient rounded-xl shadow-lg animate-glow flex-shrink-0">
+                  <Crown className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
                 </div>
-                <div>
-                  <h2 className="font-bold text-lg text-gray-900">Jewelry Shop</h2>
-                  <p className="text-sm text-gray-600 flex items-center gap-1">
-                    <Gem className="h-3 w-3 text-orange-500" />
-                    Management System
+                <div className="min-w-0 flex-1">
+                  <h2 className="font-bold text-base lg:text-lg text-gray-900 truncate">Jewelry Shop</h2>
+                  <p className="text-xs lg:text-sm text-gray-600 flex items-center gap-1 truncate">
+                    <Gem className="h-3 w-3 text-orange-500 flex-shrink-0" />
+                    <span className="truncate">Management System</span>
                   </p>
                 </div>
               </div>
@@ -330,8 +381,8 @@ export function AdminSidebar({ className, isMobile = false, onClose }: AdminSide
             <Button
               variant="ghost"
               size="sm"
-              onClick={isMobile ? onClose : () => setCollapsed(!collapsed)}
-              className="hover:bg-orange-100 transition-all duration-300 p-2 rounded-full"
+              onClick={isMobile ? onClose : onToggleCollapse}
+              className="hover:bg-orange-100 transition-all duration-300 p-2 rounded-full flex-shrink-0"
             >
               {isMobile ? (
                 <X className="h-5 w-5 text-gray-700" />
@@ -345,21 +396,21 @@ export function AdminSidebar({ className, isMobile = false, onClose }: AdminSide
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto scrollbar-thin scrollbar-thumb-orange-200">
+        <nav className="flex-1 p-3 lg:p-4 space-y-1 lg:space-y-2 overflow-y-auto scrollbar-thin scrollbar-thumb-orange-200">
           {filteredMenuItems.map((item, index) => renderMenuItem(item, index))}
         </nav>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-orange-200/50 space-y-2 bg-gradient-to-r from-orange-25 to-amber-25">
+        <div className="p-3 lg:p-4 border-t border-orange-200/50 space-y-2 bg-gradient-to-r from-orange-25 to-amber-25">
           {(!collapsed || isMobile) && (
             <div className="flex gap-2 animate-fade-in-scale">
               <Button
                 variant="outline"
                 onClick={handleLogout}
-                className="flex-1 hover:bg-red-50 border-red-200 text-red-600 hover:text-red-700"
+                className="flex-1 hover:bg-red-50 border-red-200 text-red-600 hover:text-red-700 text-sm"
               >
                 <LogOut className="h-4 w-4 mr-2" />
-                Logout
+                <span className="truncate">Logout</span>
               </Button>
             </div>
           )}

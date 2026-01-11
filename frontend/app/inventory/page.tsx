@@ -1,153 +1,195 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { InventoryStats } from "@/components/inventory-stats"
 import { InventoryProductTable } from "@/components/inventory-product-table"
-import { InventoryAddProduct } from "@/components/inventory-add-product"
-import { SimpleProtectedRoute } from "@/components/admin/shared/admn-protected-route"
+import { AdminLayout } from "@/components/admin/layout/admin-layout"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Package, Plus, ArrowLeft, Download, Upload, Gem, Clock } from "lucide-react"
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
+import { Package, Plus } from "lucide-react"
 import Link from "next/link"
-
-interface Product {
-  id: string
-  name: string
-  sku: string
-  category: string
-  price: number
-  cost: number
-  weight: string
-  purity: string
-  stock: number
-  minStock: number
-  status: "in-stock" | "low-stock" | "out-of-stock"
-  featured: boolean
-  image: string
-  createdAt: string
-}
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 
 export default function InventoryPage() {
-  const [showAddProduct, setShowAddProduct] = useState(false)
-  const [goldRate] = useState(6850)
+  const router = useRouter()
+  const [viewProduct, setViewProduct] = useState<any>(null)
+  const [deleteProductId, setDeleteProductId] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
-  const handleEditProduct = (product: Product) => {
-    console.log("Edit product:", product)
-    // Handle edit product logic
+  const handleEditProduct = (product: any) => {
+    router.push(`/inventory/edit/${product.id}`)
   }
 
-  const handleDeleteProduct = (productId: string) => {
-    console.log("Delete product:", productId)
-    // Handle delete product logic
+  const handleDeleteProduct = async (productId: string) => {
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`/api/products/${productId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete product')
+      }
+
+      // Close dialog and trigger refresh
+      setDeleteProductId(null)
+      setRefreshKey(prev => prev + 1) // Force table to refresh
+    } catch (error) {
+      console.error('Error deleting product:', error)
+      alert('Failed to delete product')
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
-  const handleViewProduct = (product: Product) => {
-    console.log("View product:", product)
-    // Handle view product logic
+  const handleViewProduct = (product: any) => {
+    setViewProduct(product)
   }
-
-  const handleSaveProduct = (productData: any) => {
-    console.log("Save product:", productData)
-    // Handle save product logic
-    setShowAddProduct(false)
-    alert("Product saved successfully!")
-  }
-
-  const currentTime = new Date().toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  })
 
   return (
-    <SimpleProtectedRoute allowedRoles={["admin", "staff"]}>
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50">
-      {/* Header */}
-      <header className="glass-card border-b border-orange-200/50 sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4 animate-slide-in-up">
-              <Link href="/">
-                <Button variant="ghost" size="sm" className="hover:bg-orange-50">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
-                </Button>
-              </Link>
-              <div className="flex items-center gap-3">
-                <div className="p-2 luxury-gradient rounded-xl animate-glow">
-                  <Package className="h-6 w-6 text-white" />
+    <AdminLayout allowedRoles={["admin", "staff"]}>
+      <div className="w-full space-y-4 sm:space-y-6 lg:space-y-8">
+        {/* Action Bar */}
+        <div className="flex justify-end">
+          <Link href="/inventory/add">
+            <Button 
+              size="sm" 
+              className="luxury-gradient hover:shadow-lg transition-all duration-300 animate-glow whitespace-nowrap text-xs sm:text-sm"
+            >
+              <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden xs:inline">Add Product</span>
+              <span className="xs:hidden">Add</span>
+            </Button>
+          </Link>
+        </div>
+
+        {/* Stats Section */}
+        <InventoryStats />
+
+        {/* Product Table */}
+        <div className="w-full overflow-hidden rounded-lg sm:rounded-xl">
+          <InventoryProductTable 
+            key={refreshKey}
+            onEditProduct={handleEditProduct}
+            onDeleteProduct={(id) => setDeleteProductId(id)}
+            onViewProduct={handleViewProduct}
+          />
+        </div>
+      </div>
+
+      {/* View Product Dialog */}
+      <Dialog open={!!viewProduct} onOpenChange={() => setViewProduct(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Product Details</DialogTitle>
+            <DialogDescription>View complete product information</DialogDescription>
+          </DialogHeader>
+          {viewProduct && (
+            <div className="space-y-4">
+              {/* Product Image */}
+              {viewProduct.image && (
+                <div className="flex justify-center">
+                  <div className="w-48 h-48 rounded-lg overflow-hidden bg-gray-100">
+                    <img 
+                      src={`http://localhost:4000${viewProduct.image}`} 
+                      alt={viewProduct.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Product Info Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Product Name</p>
+                  <p className="mt-1 text-sm text-gray-900">{viewProduct.name}</p>
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">Inventory Management</h1>
-                  <p className="text-sm text-gray-600">Manage your jewelry collection</p>
+                  <p className="text-sm font-medium text-gray-500">SKU</p>
+                  <p className="mt-1 text-sm text-gray-900">{viewProduct.sku}</p>
                 </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="glass-card px-3 py-2 rounded-lg animate-float">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-orange-600" />
-                  <span className="text-sm font-medium">{currentTime}</span>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Category</p>
+                  <p className="mt-1 text-sm text-gray-900 capitalize">{viewProduct.category}</p>
                 </div>
-              </div>
-              <div className="glass-card px-3 py-2 rounded-lg animate-float">
-                <div className="flex items-center gap-2">
-                  <Gem className="h-4 w-4 text-orange-600" />
-                  <span className="text-sm font-medium">Gold Rate</span>
-                  <Badge variant="secondary" className="luxury-gradient text-white">
-                    NPR {goldRate.toLocaleString()}/tola
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Price</p>
+                  <p className="mt-1 text-sm text-gray-900">₹{viewProduct.price?.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Cost</p>
+                  <p className="mt-1 text-sm text-gray-900">₹{viewProduct.cost?.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Stock</p>
+                  <p className="mt-1 text-sm text-gray-900">{viewProduct.stock} units</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Min Stock</p>
+                  <p className="mt-1 text-sm text-gray-900">{viewProduct.minStock} units</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Metal Type</p>
+                  <p className="mt-1 text-sm text-gray-900 capitalize">{viewProduct.metalType}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Purity</p>
+                  <p className="mt-1 text-sm text-gray-900">{viewProduct.purity}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Weight</p>
+                  <p className="mt-1 text-sm text-gray-900">{viewProduct.weight}g</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Status</p>
+                  <Badge 
+                    variant={viewProduct.status === 'in-stock' ? 'default' : viewProduct.status === 'low-stock' ? 'secondary' : 'destructive'} 
+                    className="mt-1"
+                  >
+                    {viewProduct.status}
                   </Badge>
                 </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Featured</p>
+                  <p className="mt-1 text-sm text-gray-900">{viewProduct.featured ? 'Yes' : 'No'}</p>
+                </div>
               </div>
 
-              {!showAddProduct && (
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="hover:bg-orange-50 bg-transparent">
-                    <Download className="h-4 w-4 mr-2" />
-                    Export
-                  </Button>
-                  <Button variant="outline" size="sm" className="hover:bg-orange-50 bg-transparent">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Import
-                  </Button>
-                  <Button
-                    onClick={() => setShowAddProduct(true)}
-                    className="luxury-gradient hover:shadow-lg transition-all duration-300 animate-glow"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Product
-                  </Button>
+              {/* Description */}
+              {viewProduct.description && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Description</p>
+                  <p className="mt-1 text-sm text-gray-900">{viewProduct.description}</p>
                 </div>
               )}
             </div>
-          </div>
-        </div>
-      </header>
+          )}
+        </DialogContent>
+      </Dialog>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-6 py-8 space-y-8">
-        {showAddProduct ? (
-          <InventoryAddProduct onSave={handleSaveProduct} onCancel={() => setShowAddProduct(false)} />
-        ) : (
-          <>
-            {/* Stats */}
-            <section>
-              <InventoryStats />
-            </section>
-
-            {/* Product Table */}
-            <section>
-              <InventoryProductTable
-                onEditProduct={handleEditProduct}
-                onDeleteProduct={handleDeleteProduct}
-                onViewProduct={handleViewProduct}
-              />
-            </section>
-          </>
-        )}
-      </main>
-      </div>
-    </SimpleProtectedRoute>
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        open={!!deleteProductId}
+        onClose={() => setDeleteProductId(null)}
+        onConfirm={() => deleteProductId && handleDeleteProduct(deleteProductId)}
+        title="Delete Product"
+        description="Are you sure you want to delete this product? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        loading={isDeleting}
+      />
+    </AdminLayout>
   )
 }

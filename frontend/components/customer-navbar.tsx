@@ -6,11 +6,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { ProfileDropdown } from "@/components/profile-dropdown"
+import { useCart } from "@/hooks/use-cart"
+import { useWishlist } from "@/hooks/use-wishlist"
 import Link from "next/link"
 
 export function CustomerNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const { getCartCount } = useCart()
+  const { wishlistCount } = useWishlist()
 
   return (
     <nav className="sticky top-0 z-50 glass-card border-b border-border/50 shadow-lg">
@@ -60,14 +64,24 @@ export function CustomerNavbar() {
               <Bell className="w-4 h-4" />
               <Badge className="bg-primary text-primary-foreground text-xs">2</Badge>
             </Button>
-            <Button variant="ghost" size="sm" className="hidden md:flex items-center space-x-1 sm:space-x-2 hover-glow">
-              <Heart className="w-4 h-4" />
-              <Badge className="bg-red-500 text-white text-xs">3</Badge>
-            </Button>
-            <Button variant="ghost" size="sm" className="flex items-center space-x-1 sm:space-x-2 hover-glow p-1 sm:p-2">
-              <ShoppingBag className="w-4 h-4" />
-              <Badge className="bg-primary text-primary-foreground text-xs animate-pulse-ring">2</Badge>
-            </Button>
+            <Link href="/account/wishlist">
+              <Button variant="ghost" size="sm" className="hidden md:flex items-center space-x-1 sm:space-x-2 hover-glow">
+                <Heart className="w-4 h-4" />
+                {wishlistCount > 0 && (
+                  <Badge className="bg-red-500 text-white text-xs">{wishlistCount}</Badge>
+                )}
+              </Button>
+            </Link>
+            <Link href="/cart">
+              <Button variant="ghost" size="sm" className="flex items-center space-x-1 sm:space-x-2 hover-glow p-1 sm:p-2">
+                <ShoppingBag className="w-4 h-4" />
+                {getCartCount() > 0 && (
+                  <Badge className="bg-primary text-primary-foreground text-xs animate-pulse-ring">
+                    {getCartCount()}
+                  </Badge>
+                )}
+              </Button>
+            </Link>
             
             {/* Profile Dropdown */}
             <ProfileDropdown />
@@ -102,11 +116,15 @@ export function CustomerNavbar() {
                   <span>Notifications</span>
                   <Badge className="bg-primary text-primary-foreground text-xs">2</Badge>
                 </Button>
-                <Button variant="ghost" size="sm" className="flex items-center space-x-2 justify-start text-xs">
-                  <Heart className="w-4 h-4" />
-                  <span>Wishlist</span>
-                  <Badge className="bg-red-500 text-white text-xs">3</Badge>
-                </Button>
+                <Link href="/account/wishlist" className="w-full">
+                  <Button variant="ghost" size="sm" className="flex items-center space-x-2 justify-start text-xs w-full">
+                    <Heart className="w-4 h-4" />
+                    <span>Wishlist</span>
+                    {wishlistCount > 0 && (
+                      <Badge className="bg-red-500 text-white text-xs">{wishlistCount}</Badge>
+                    )}
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>

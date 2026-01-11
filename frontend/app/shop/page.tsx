@@ -3,18 +3,23 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { CustomerNavbar } from "@/components/customer-navbar"
+import { LandingFooter } from "@/components/landing-footer"
 import { ProductGrid } from "@/components/product-grid"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Filter, X } from "lucide-react"
+import { Filter, X, Loader2 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 
 export default function ShopPage() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [priceRange, setPriceRange] = useState("all")
-  const [sortBy, setSortBy] = useState("featured")
+  const [sortBy, setSortBy] = useState("all")
   const [showFilters, setShowFilters] = useState(false)
+  const [productCount, setProductCount] = useState(0)
+  const [totalProducts, setTotalProducts] = useState(0)
+  const [currentLimit, setCurrentLimit] = useState(12)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const router = useRouter()
   const { user, isAuthenticated, isLoading } = useAuth()
 
@@ -47,6 +52,11 @@ export default function ShopPage() {
     }
   }, [isAuthenticated, user, isLoading, router])
 
+  // Reset limit when filters change
+  useEffect(() => {
+    setCurrentLimit(12)
+  }, [selectedCategory, priceRange, sortBy])
+
   // Show loading state while checking authentication
   if (isLoading) {
     return (
@@ -66,32 +76,43 @@ export default function ShopPage() {
 
   const categories = [
     { value: "all", label: "All Categories" },
-    { value: "bridal", label: "Bridal Collection" },
-    { value: "gold", label: "Gold Jewelry" },
-    { value: "diamond", label: "Diamond Jewelry" },
-    { value: "silver", label: "Silver Jewelry" },
-    { value: "pearl", label: "Pearl Jewelry" },
-    { value: "precious-stones", label: "Precious Stones" },
+    { value: "necklaces", label: "Necklaces" },
+    { value: "rings", label: "Rings" },
+    { value: "bangles", label: "Bangles" },
+    { value: "earrings", label: "Earrings" },
+    { value: "pendants", label: "Pendants" },
+    { value: "chains", label: "Chains" },
+    { value: "bracelets", label: "Bracelets" },
   ]
 
   const priceRanges = [
     { value: "all", label: "All Prices" },
-    { value: "0-25000", label: "Under ₹25,000" },
-    { value: "25000-50000", label: "₹25,000 - ₹50,000" },
-    { value: "50000-100000", label: "₹50,000 - ₹1,00,000" },
-    { value: "100000+", label: "Above ₹1,00,000" },
+    { value: "0-25000", label: "Under NPR 25,000" },
+    { value: "25000-50000", label: "NPR 25,000 - 50,000" },
+    { value: "50000-100000", label: "NPR 50,000 - 1,00,000" },
+    { value: "100000-200000", label: "NPR 1,00,000 - 2,00,000" },
+    { value: "200000+", label: "Above NPR 2,00,000" },
   ]
 
   const sortOptions = [
+    { value: "all", label: "All" },
     { value: "featured", label: "Featured" },
     { value: "price-low", label: "Price: Low to High" },
     { value: "price-high", label: "Price: High to Low" },
     { value: "newest", label: "Newest First" },
-    { value: "rating", label: "Highest Rated" },
   ]
 
+  const handleLoadMore = async () => {
+    setIsLoadingMore(true)
+    setCurrentLimit(prev => prev + 12)
+    // Small delay for smooth UX
+    setTimeout(() => setIsLoadingMore(false), 300)
+  }
+
+  const hasMoreProducts = productCount < totalProducts
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <CustomerNavbar />
 
       {/* Hero Section */}
@@ -106,7 +127,7 @@ export default function ShopPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
         {/* Filters and Sort */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
           <div className="flex items-center space-x-4">
@@ -208,31 +229,64 @@ export default function ShopPage() {
         )}
 
         {/* Active Filters */}
-        <div className="flex items-center space-x-2 mb-6">
-          {selectedCategory !== "all" && (
-            <Badge variant="secondary" className="flex items-center space-x-1">
-              <span>{categories.find((c) => c.value === selectedCategory)?.label}</span>
-              <X className="w-3 h-3 cursor-pointer" onClick={() => setSelectedCategory("all")} />
-            </Badge>
-          )}
-          {priceRange !== "all" && (
-            <Badge variant="secondary" className="flex items-center space-x-1">
-              <span>{priceRanges.find((p) => p.value === priceRange)?.label}</span>
-              <X className="w-3 h-3 cursor-pointer" onClick={() => setPriceRange("all")} />
-            </Badge>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-2">
+            {selectedCategory !== "all" && (
+              <Badge variant="secondary" className="flex items-center space-x-1">
+                <span>{categories.find((c) => c.value === selectedCategory)?.label}</span>
+                <X className="w-3 h-3 cursor-pointer" onClick={() => setSelectedCategory("all")} />
+              </Badge>
+            )}
+            {priceRange !== "all" && (
+              <Badge variant="secondary" className="flex items-center space-x-1">
+                <span>{priceRanges.find((p) => p.value === priceRange)?.label}</span>
+                <X className="w-3 h-3 cursor-pointer" onClick={() => setPriceRange("all")} />
+              </Badge>
+            )}
+          </div>
+          
+          {productCount > 0 && (
+            <div className="text-sm text-gray-600">
+              Showing <span className="font-semibold">{productCount}</span> of <span className="font-semibold">{totalProducts}</span> {totalProducts === 1 ? 'product' : 'products'}
+            </div>
           )}
         </div>
 
         {/* Product Grid */}
-        <ProductGrid />
+        <ProductGrid 
+          category={selectedCategory}
+          priceRange={priceRange}
+          sortBy={sortBy}
+          limit={currentLimit}
+          onProductCountChange={setProductCount}
+          onTotalProductsChange={setTotalProducts}
+        />
 
-        {/* Load More */}
-        <div className="text-center mt-12">
-          <Button variant="outline" size="lg" className="px-8 bg-transparent">
-            Load More Products
-          </Button>
-        </div>
+        {/* Load More Button */}
+        {hasMoreProducts && (
+          <div className="text-center mt-12">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="px-8"
+              onClick={handleLoadMore}
+              disabled={isLoadingMore}
+            >
+              {isLoadingMore ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                `Load More Products (${totalProducts - productCount} remaining)`
+              )}
+            </Button>
+          </div>
+        )}
       </div>
+
+      {/* Footer */}
+      <LandingFooter />
     </div>
   )
 }

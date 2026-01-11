@@ -165,10 +165,10 @@ export const useAuth = () => {
     }
   };
 
-  // Check authentication status on mount
+  // Check authentication status on mount - only run once!
   useEffect(() => {
     checkAuth();
-  }, [checkAuth]);
+  }, []); // Empty dependency array to prevent infinite loops
 
   return {
     ...authState,

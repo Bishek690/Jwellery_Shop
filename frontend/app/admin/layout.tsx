@@ -1,11 +1,15 @@
 "use client"
 
-import { AdminLayoutWrapper } from "@/components/admin/layout/wrapper"
+import { AdminLayout as AdminLayoutComponent } from "@/components/admin/layout/admin-layout"
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  return <AdminLayoutWrapper>{children}</AdminLayoutWrapper>
+  return (
+    <AdminLayoutComponent allowedRoles={["admin", "staff", "accountant"]}>
+      {children}
+    </AdminLayoutComponent>
+  )
 }

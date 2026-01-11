@@ -189,20 +189,57 @@ export const createUserByAdmin = async (req: Request, res: Response) => {
 // Update user
 export const updateUser = async (req: Request, res: Response) => {
   const { name, email, phone, password, role } = req.body;
-  const user = await userRepo().findOneBy({ id: req.params.id });
-  if (!user) return res.status(404).json({ message: "User not found" });
-  user.name = name ?? user.name;
-  user.email = email ?? user.email;
-  user.phone = phone ?? user.phone;
-  if (password) {
-    user.password = await bcrypt.hash(password, 10);
-    // if password changed by the user, clear mustChangePassword
-    user.mustChangePassword = false;
+  const requester = (req as any).user;
+  
+  try {
+    const user = await userRepo().findOneBy({ id: req.params.id });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Prevent editing admin users (unless requester is the same admin)
+    if (user.role === UserRole.ADMIN && user.id !== requester?.id) {
+      return res.status(403).json({ 
+        message: "Cannot edit other admin accounts" 
+      });
+    }
+
+    // Prevent changing role to admin
+    if (role && role === UserRole.ADMIN && user.role !== UserRole.ADMIN) {
+      return res.status(403).json({ 
+        message: "Cannot change user role to admin" 
+      });
+    }
+
+    // Prevent removing admin role from existing admin
+    if (user.role === UserRole.ADMIN && role && role !== UserRole.ADMIN) {
+      return res.status(403).json({ 
+        message: "Cannot change admin role to another role" 
+      });
+    }
+
+    // Update user fields
+    user.name = name ?? user.name;
+    user.email = email ?? user.email;
+    user.phone = phone ?? user.phone;
+    
+    if (password) {
+      user.password = await bcrypt.hash(password, 10);
+      // if password changed by the user, clear mustChangePassword
+      user.mustChangePassword = false;
+    }
+    
+    // Only update role if it's not admin-related and requester is admin
+    if (role && requester?.role === UserRole.ADMIN) {
+      user.role = role;
+    }
+    
+    await userRepo().save(user);
+    res.json(omitPassword(user));
+  } catch (e: any) {
+    res.status(500).json({ 
+      message: "Error updating user", 
+      error: e.message ?? e 
+    });
   }
-  // prevent role escalation via this endpoint unless the requester is admin — handled elsewhere if needed
-  user.role = role ?? user.role;
-  await userRepo().save(user);
-  res.json(omitPassword(user));
 };
 
 // Change password
@@ -312,8 +349,32 @@ export const logout = async (req: AuthRequest, res: Response) => {
 
 // Delete user by ID
 export const deleteUser = async (req: Request, res: Response) => {
-  const user = await userRepo().findOneBy({ id: req.params.id });
-  if (!user) return res.status(404).json({ message: "User not found" });
-  await userRepo().remove(user);
-  res.json({ message: "User deleted successfully" });
+  const requester = (req as any).user;
+  
+  try {
+    const user = await userRepo().findOneBy({ id: req.params.id });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Prevent deleting admin users
+    if (user.role === UserRole.ADMIN) {
+      return res.status(403).json({ 
+        message: "Cannot delete admin accounts" 
+      });
+    }
+
+    // Prevent users from deleting themselves
+    if (user.id === requester?.id) {
+      return res.status(403).json({ 
+        message: "Cannot delete your own account" 
+      });
+    }
+
+    await userRepo().remove(user);
+    res.json({ message: "User deleted successfully" });
+  } catch (e: any) {
+    res.status(500).json({ 
+      message: "Error deleting user", 
+      error: e.message ?? e 
+    });
+  }
 };

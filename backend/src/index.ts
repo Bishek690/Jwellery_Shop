@@ -2,8 +2,12 @@ import "reflect-metadata";
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import path from "path";
 import { AppDataSource } from "./config/data-source";
 import userRoutes from "./routes/userRoutes";
+import productRoutes from "./routes/productRoutes";
+import dashboardRoutes from "./routes/dashboardRoutes";
+import orderRoutes from "./routes/orderRoutes";
 
 require("dotenv").config();
 
@@ -27,6 +31,9 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 // Health check endpoint
 app.get("/", (req, res) => {
   res.json({
@@ -48,6 +55,9 @@ app.get("/api/health", (req, res) => {
 
 // API routes
 app.use("/api/users", userRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/orders", orderRoutes);
 
 // Global error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

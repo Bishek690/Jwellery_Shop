@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -28,10 +28,56 @@ import {
 import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
 
+interface Product {
+  id: string
+  name: string
+  sku: string
+  category: string
+  description: string
+  price: number
+  cost: number
+  discountPrice?: number
+  weight: number
+  metalType: string
+  purity: string
+  stock: number
+  minStock: number
+  status: string
+  featured: boolean
+  image?: string
+  createdAt: string
+  updatedAt: string
+}
+
 export default function CustomerLandingPage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
   const { user, isAuthenticated } = useAuth()
+
+  // Fetch featured products
+  useEffect(() => {
+    fetchFeaturedProducts()
+  }, [])
+
+  const fetchFeaturedProducts = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/products?featured=true&limit=6', {
+        method: 'GET',
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setFeaturedProducts(data.products || [])
+      }
+    } catch (error) {
+      console.error('Error fetching featured products:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Handle shop navigation with authentication check
   const handleShopNavigation = () => {
@@ -42,68 +88,12 @@ export default function CustomerLandingPage() {
     }
   }
 
-  const featuredProducts = [
-    {
-      id: 1,
-      name: "Diamond Necklace Set",
-      price: "NPR 2,85,000",
-      originalPrice: "NPR 3,20,000",
-      image: "/sparkling-diamond-necklace.png",
-      rating: 4.9,
-      reviews: 127,
-      category: "Necklaces",
-    },
-    {
-      id: 2,
-      name: "Gold Bangles (Pair)",
-      price: "NPR 1,45,000",
-      originalPrice: "NPR 1,65,000",
-      image: "/gold-bangles.jpg",
-      rating: 4.8,
-      reviews: 89,
-      category: "Bangles",
-    },
-    {
-      id: 3,
-      name: "Ruby Ring Collection",
-      price: "NPR 95,000",
-      originalPrice: "NPR 1,10,000",
-      image: "/ruby-rings.jpg",
-      rating: 4.9,
-      reviews: 156,
-      category: "Rings",
-    },
-    {
-      id: 4,
-      name: "Pearl Earrings",
-      price: "NPR 65,000",
-      originalPrice: "NPR 75,000",
-      image: "/elegant-pearl-earrings.jpg",
-      rating: 4.7,
-      reviews: 94,
-      category: "Earrings",
-    },
-    {
-      id: 5,
-      name: "Emerald Pendant",
-      price: "NPR 1,25,000",
-      originalPrice: "NPR 1,45,000",
-      image: "/emerald-pendant-necklace.png",
-      rating: 4.8,
-      reviews: 73,
-      category: "Pendants",
-    },
-    {
-      id: 6,
-      name: "Silver Chain",
-      price: "NPR 35,000",
-      originalPrice: "NPR 42,000",
-      image: "/silver-chain-necklace.png",
-      rating: 4.6,
-      reviews: 112,
-      category: "Chains",
-    },
-  ]
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-NP', {
+      style: 'currency',
+      currency: 'NPR',
+    }).format(amount)
+  }
 
   const testimonials = [
     {
@@ -284,52 +274,96 @@ export default function CustomerLandingPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {featuredProducts.map((product, index) => (
-              <Card
-                key={product.id}
-                className="glass-card group cursor-pointer hover:shadow-xl transition-all duration-300 animate-fade-in-scale"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="relative overflow-hidden rounded-t-lg">
-                  <img
-                    src={product.image || "/placeholder.svg"}
-                    alt={product.name}
-                    className="w-full h-48 sm:h-56 lg:h-64 object-cover group-hover:scale-105 transition-transform duration-300 gold-shimmer"
-                  />
-                  <Button size="sm" variant="ghost" className="absolute top-2 sm:top-4 right-2 sm:right-4 glass-card hover:bg-white/80 p-1 sm:p-2">
-                    <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
-                  </Button>
-                  <Badge className="absolute top-2 sm:top-4 left-2 sm:left-4 luxury-gradient text-white text-xs">{product.category}</Badge>
-                </div>
-                <CardContent className="p-3 sm:p-4 lg:p-6">
-                  <div className="flex items-center gap-1 sm:gap-2 mb-2">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-3 w-3 sm:h-4 sm:w-4 ${i < Math.floor(product.rating) ? "text-yellow-500 fill-current" : "text-gray-300"}`}
-                        />
-                      ))}
+            {loading ? (
+              // Loading skeleton
+              [...Array(6)].map((_, index) => (
+                <Card key={index} className="glass-card animate-pulse">
+                  <div className="h-48 sm:h-56 lg:h-64 bg-gray-200 rounded-t-lg"></div>
+                  <CardContent className="p-3 sm:p-4 lg:p-6">
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-6 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-8 bg-gray-200 rounded mb-3"></div>
+                    <div className="h-10 bg-gray-200 rounded"></div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : featuredProducts.length > 0 ? (
+              featuredProducts.map((product, index) => (
+                <Card
+                  key={product.id}
+                  className="glass-card group cursor-pointer hover:shadow-xl transition-all duration-300 animate-fade-in-scale"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <div className="relative overflow-hidden rounded-t-lg">
+                    <img
+                      src={product.image ? `http://localhost:4000${product.image}` : "/placeholder.svg"}
+                      alt={product.name}
+                      className="w-full h-48 sm:h-56 lg:h-64 object-cover group-hover:scale-105 transition-transform duration-300 gold-shimmer"
+                    />
+                    <Button size="sm" variant="ghost" className="absolute top-2 sm:top-4 right-2 sm:right-4 glass-card hover:bg-white/80 p-1 sm:p-2">
+                      <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
+                    <Badge className="absolute top-2 sm:top-4 left-2 sm:left-4 luxury-gradient text-white text-xs">
+                      {product.category.charAt(0).toUpperCase() + product.category.slice(1)}
+                    </Badge>
+                    {product.featured && (
+                      <Badge className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 bg-yellow-500 text-white text-xs">
+                        <Star className="h-3 w-3 mr-1 fill-current" />
+                        Featured
+                      </Badge>
+                    )}
+                  </div>
+                  <CardContent className="p-3 sm:p-4 lg:p-6">
+                    <div className="flex items-center gap-1 sm:gap-2 mb-2">
+                      <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-3 w-3 sm:h-4 sm:w-4 ${i < 4 ? "text-yellow-500 fill-current" : "text-gray-300"}`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-600">({product.stock} in stock)</span>
                     </div>
-                    <span className="text-xs sm:text-sm text-gray-600">({product.reviews})</span>
-                  </div>
-                  <h3 className="font-semibold text-sm sm:text-base lg:text-lg mb-2 group-hover:text-orange-600 transition-colors line-clamp-2">
-                    {product.name}
-                  </h3>
-                  <div className="flex items-center gap-1 sm:gap-2 mb-3 sm:mb-4">
-                    <span className="text-lg sm:text-xl lg:text-2xl font-bold text-orange-600">{product.price}</span>
-                    <span className="text-xs sm:text-sm text-gray-500 line-through">{product.originalPrice}</span>
-                  </div>
-                  <Button 
-                    onClick={handleShopNavigation}
-                    className="w-full luxury-gradient hover:shadow-lg transition-all duration-300 text-xs sm:text-sm py-2"
-                  >
-                    <ShoppingBag className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                    Add to Cart
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                    <h3 className="font-semibold text-sm sm:text-base lg:text-lg mb-2 group-hover:text-orange-600 transition-colors line-clamp-2">
+                      {product.name}
+                    </h3>
+                    <div className="flex items-center gap-1 sm:gap-2 mb-3 sm:mb-4">
+                      <span className="text-lg sm:text-xl lg:text-2xl font-bold text-orange-600">
+                        {formatCurrency(product.discountPrice || product.price)}
+                      </span>
+                      {product.discountPrice && (
+                        <span className="text-xs sm:text-sm text-gray-500 line-through">
+                          {formatCurrency(product.price)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-600 mb-3">
+                      <Badge variant="outline" className="text-xs">
+                        {product.metalType}
+                      </Badge>
+                      {product.purity && (
+                        <Badge variant="outline" className="text-xs">
+                          {product.purity}
+                        </Badge>
+                      )}
+                    </div>
+                    <Button 
+                      onClick={handleShopNavigation}
+                      className="w-full luxury-gradient hover:shadow-lg transition-all duration-300 text-xs sm:text-sm py-2"
+                    >
+                      <ShoppingBag className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                      Add to Cart
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <Gem className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                <p className="text-gray-500">No featured products available at the moment.</p>
+              </div>
+            )}
           </div>
 
           <div className="text-center mt-8 sm:mt-12">

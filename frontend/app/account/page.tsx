@@ -1,7 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { CustomerNavbar } from "@/components/customer-navbar"
+import { LandingFooter } from "@/components/landing-footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -27,6 +29,7 @@ import {
   Award,
 } from "lucide-react"
 import Image from "next/image"
+import { useAuth } from "@/hooks/use-auth"
 
 const orderHistory = [
   {
@@ -65,6 +68,68 @@ const wishlistItems = [
 
 export default function AccountPage() {
   const [activeTab, setActiveTab] = useState("overview")
+  const router = useRouter()
+  const { user, isAuthenticated, isLoading } = useAuth()
+
+  // Check if user is authenticated and is a customer
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        router.push("/auth/login")
+        return
+      }
+      
+      if (user && user.role !== "customer") {
+        // Redirect non-customers to their appropriate dashboard
+        switch (user.role) {
+          case "admin":
+            router.push("/admin")
+            break
+          case "staff":
+            router.push("/admin/dashboard")
+            break
+          case "accountant":
+            router.push("/analytics")
+            break
+          default:
+            router.push("/auth/login")
+            break
+        }
+      }
+    }
+  }, [isAuthenticated, user, isLoading, router])
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show nothing while redirecting
+  if (!isAuthenticated || (user && user.role !== "customer")) {
+    return null
+  }
+
+  const getUserInitials = () => {
+    if (!user) return "U"
+    const names = user.name.split(" ")
+    if (names.length >= 2) {
+      return `${names[0][0]}${names[1][0]}`.toUpperCase()
+    }
+    return user.name.substring(0, 2).toUpperCase()
+  }
+
+  const getMemberSince = () => {
+    if (!user) return "2024"
+    const date = new Date(user.createdAt)
+    return date.getFullYear().toString()
+  }
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -98,15 +163,17 @@ export default function AccountPage() {
               <div className="relative">
                 <Avatar className="w-24 h-24 border-4 border-primary/20 shadow-lg">
                   <AvatarImage src="/placeholder.svg" />
-                  <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">PS</AvatarFallback>
+                  <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
+                    {getUserInitials()}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="absolute -top-2 -right-2 bg-primary rounded-full p-2 animate-pulse-ring">
                   <Crown className="w-4 h-4 text-primary-foreground" />
                 </div>
               </div>
               <div className="text-center md:text-left flex-1">
-                <h1 className="text-3xl font-bold text-foreground mb-2">Welcome back, Priya!</h1>
-                <p className="text-muted-foreground mb-4">VIP Customer since 2020</p>
+                <h1 className="text-3xl font-bold text-foreground mb-2">Welcome back, {user?.name}!</h1>
+                <p className="text-muted-foreground mb-4">VIP Customer since {getMemberSince()}</p>
                 <div className="flex flex-wrap gap-2 justify-center md:justify-start">
                   <Badge className="bg-gradient-to-r from-primary to-accent text-primary-foreground border-0 px-4 py-1">
                     <Crown className="w-3 h-3 mr-1" />
@@ -434,42 +501,55 @@ export default function AccountPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input
-                        id="firstName"
-                        defaultValue="Priya"
-                        className="hover-glow focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input
-                        id="lastName"
-                        defaultValue="Sharma"
-                        className="hover-glow focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input
+                      id="name"
+                      defaultValue={user?.name || ""}
+                      className="hover-glow focus:ring-2 focus:ring-primary"
+                      readOnly
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"
                       type="email"
-                      defaultValue="priya.sharma@email.com"
+                      defaultValue={user?.email || ""}
                       className="hover-glow focus:ring-2 focus:ring-primary"
+                      readOnly
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone</Label>
                     <Input
                       id="phone"
-                      defaultValue="+91 98765 43210"
+                      defaultValue={user?.phone || "Not provided"}
                       className="hover-glow focus:ring-2 focus:ring-primary"
+                      readOnly
                     />
                   </div>
-                  <Button className="w-full luxury-gradient hover:opacity-90">Update Profile</Button>
+                  <div className="space-y-2">
+                    <Label htmlFor="role">Account Type</Label>
+                    <Input
+                      id="role"
+                      defaultValue={user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : ""}
+                      className="hover-glow focus:ring-2 focus:ring-primary"
+                      readOnly
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="memberSince">Member Since</Label>
+                    <Input
+                      id="memberSince"
+                      defaultValue={user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ""}
+                      className="hover-glow focus:ring-2 focus:ring-primary"
+                      readOnly
+                    />
+                  </div>
+                  <Button className="w-full luxury-gradient hover:opacity-90" disabled>
+                    Contact Support to Update Profile
+                  </Button>
                 </CardContent>
               </Card>
 
@@ -607,6 +687,7 @@ export default function AccountPage() {
           </TabsContent>
         </Tabs>
       </div>
+      <LandingFooter />
     </div>
   )
 }

@@ -50,12 +50,6 @@ export function AnalyticsCharts() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-            Analytics Dashboard
-          </h2>
-          <p className="text-muted-foreground">Comprehensive insights into your jewelry business</p>
-        </div>
         <div className="flex gap-2">
           {["1month", "3months", "6months", "1year"].map((range) => (
             <Button

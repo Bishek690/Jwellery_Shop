@@ -57,3 +57,27 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
     });
   }
 };
+
+// Role-based authorization middleware
+export const authorize = (roles: string[]) => {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ 
+        message: "Authentication required" 
+      });
+    }
+
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ 
+        message: "Insufficient permissions" 
+      });
+    }
+
+    next();
+  };
+};
+
+// Combined auth + authorization middleware
+export const authMiddleware = (roles: string[] = []) => {
+  return [authenticate, authorize(roles)];
+};

@@ -433,3 +433,112 @@
     box-shadow: 0 2px 10px rgba(249, 115, 22, 0.25);
   }
 }
+
+/* Extra Small Screen Utilities */
+@media (min-width: 380px) {
+  .xs\:inline {
+    display: inline;
+  }
+  
+  .xs\:hidden {
+    display: none;
+  }
+  
+  .xs\:block {
+    display: block;
+  }
+}
+
+/* Admin Layout Responsive Styles */
+.admin-sidebar {
+  transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+/* Desktop - Sidebar is always visible and pushes content */
+@media (min-width: 1024px) {
+  .admin-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 288px; /* w-72 = 18rem = 288px */
+    transform: translateX(0);
+  }
+
+  .admin-sidebar.collapsed {
+    width: 80px; /* w-20 = 5rem = 80px */
+  }
+
+  .admin-main-content {
+    margin-left: 288px; /* Match sidebar width */
+    transition: margin-left 0.3s ease-in-out;
+  }
+
+  .admin-main-content.sidebar-collapsed {
+    margin-left: 80px; /* Match collapsed sidebar width */
+  }
+}
+
+/* Tablet and below */
+@media (max-width: 1023px) {
+  .admin-sidebar {
+    transform: translateX(-100%);
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 280px;
+    z-index: 50;
+  }
+
+  .admin-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .admin-main-content {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .mobile-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    pointer-events: none;
+  }
+
+  .mobile-sidebar-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* Responsive spacing utilities */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 0.75rem; /* 12px */
+    padding-right: 0.75rem;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 768px) {
+  .container {
+    padding-left: 1rem; /* 16px */
+    padding-right: 1rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .container {
+    padding-left: 1.5rem; /* 24px */
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-left: 2rem; /* 32px */
+    padding-right: 2rem;
+  }
+}
