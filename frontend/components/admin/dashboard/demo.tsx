@@ -1,55 +1,161 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Users, Package, ShoppingCart, BarChart3, TrendingUp, 
-  CheckCircle, Clock, AlertCircle, Star
+  CheckCircle, Clock, AlertCircle, Star, Loader2
 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function AdminDashboardDemo() {
-  const stats = [
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalProducts: 0,
+    ordersToday: 0,
+    totalRevenue: 0,
+    changes: {
+      users: 0,
+      revenue: 0,
+      orders: 0,
+      products: 0,
+    }
+  });
+
+  // Fetch dashboard stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch all stats in parallel
+        const [dashboardRes, productsRes] = await Promise.all([
+          fetch('/api/dashboard/stats', { credentials: 'include' }),
+          fetch('/api/products/stats', { credentials: 'include' }),
+        ]);
+
+        const dashboardData = dashboardRes.ok ? await dashboardRes.json() : {
+          totalUsers: 0,
+          totalRevenue: 0,
+          ordersToday: 0,
+          changes: { users: 0, revenue: 0, orders: 0 }
+        };
+        
+        const productsData = productsRes.ok ? await productsRes.json() : { 
+          totalProducts: 0,
+          change: 0
+        };
+
+        setStats({
+          totalUsers: dashboardData.totalUsers || 0,
+          totalProducts: productsData.totalProducts || 0,
+          ordersToday: dashboardData.ordersToday || 0,
+          totalRevenue: dashboardData.totalRevenue || 0,
+          changes: {
+            users: dashboardData.changes?.users || 0,
+            revenue: dashboardData.changes?.revenue || 0,
+            orders: dashboardData.changes?.orders || 0,
+            products: productsData.change || 0,
+          }
+        });
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchStats();
+    }
+  }, [user]);
+
+  // Get role-specific welcome message
+  const getWelcomeMessage = () => {
+    switch (user?.role) {
+      case "admin":
+        return {
+          title: "Welcome to Admin Dashboard",
+          subtitle: "Full system management and control at your fingertips"
+        };
+      case "staff":
+        return {
+          title: "Welcome to Staff Dashboard",
+          subtitle: "Manage inventory, orders, and customer service efficiently"
+        };
+      case "accountant":
+        return {
+          title: "Welcome to Accountant Dashboard",
+          subtitle: "Access POS system, analytics, and financial reports"
+        };
+      default:
+        return {
+          title: "Welcome to Dashboard",
+          subtitle: "Your professional jewelry shop management system"
+        };
+    }
+  };
+
+  const welcomeMessage = getWelcomeMessage();
+  
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-NP', {
+      style: 'currency',
+      currency: 'NPR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  // Format percentage change
+  const formatChange = (change: number) => {
+    const sign = change >= 0 ? '+' : '';
+    return `${sign}${change}%`;
+  };
+
+  // Stats cards configuration
+  const statsCards = [
     {
       title: "Total Users",
-      value: "2,847",
-      change: "+12%",
+      value: loading ? "..." : stats.totalUsers.toLocaleString(),
+      change: formatChange(stats.changes.users),
+      isPositive: stats.changes.users >= 0,
       icon: Users,
       color: "text-orange-600",
       bgColor: "bg-orange-50",
     },
     {
       title: "Products",
-      value: "1,234",
-      change: "+5%", 
+      value: loading ? "..." : stats.totalProducts.toLocaleString(),
+      change: formatChange(stats.changes.products),
+      isPositive: stats.changes.products >= 0,
       icon: Package,
       color: "text-amber-600",
       bgColor: "bg-amber-50",
     },
     {
       title: "Orders Today",
-      value: "89",
-      change: "+23%",
+      value: loading ? "..." : stats.ordersToday.toLocaleString(),
+      change: formatChange(stats.changes.orders),
+      isPositive: stats.changes.orders >= 0,
       icon: ShoppingCart,
       color: "text-orange-700", 
       bgColor: "bg-orange-100",
     },
     {
-      title: "Revenue",
-      value: "NPR 4,56,700",
-      change: "+18%",
+      title: "Total Revenue",
+      value: loading ? "..." : formatCurrency(stats.totalRevenue),
+      change: formatChange(stats.changes.revenue),
+      isPositive: stats.changes.revenue >= 0,
       icon: BarChart3,
       color: "text-amber-700",
       bgColor: "bg-amber-100",
     },
-  ];
-
-  const recentActivity = [
-    { id: 1, type: "order", message: "New order #1234 received", time: "2 min ago", status: "success" },
-    { id: 2, type: "user", message: "New user registration", time: "5 min ago", status: "info" },
-    { id: 3, type: "product", message: "Product 'Gold Ring' low stock", time: "10 min ago", status: "warning" },
-    { id: 4, type: "payment", message: "Payment processed successfully", time: "15 min ago", status: "success" },
   ];
 
   return (
@@ -59,15 +165,15 @@ export default function AdminDashboardDemo() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="min-w-0 flex-1">
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 truncate">
-              Welcome to Admin Dashboard
+              {welcomeMessage.title}
             </h1>
             <p className="text-sm sm:text-base text-orange-100">
-              Your professional jewelry shop management system is ready to go!
+              {welcomeMessage.subtitle}
             </p>
           </div>
           <div className="flex items-center space-x-2 flex-shrink-0">
             <Badge variant="secondary" className="bg-white/20 text-white border-white/30 text-xs sm:text-sm">
-              Live System
+              {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "User"}
             </Badge>
             <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-300 flex-shrink-0" />
           </div>
@@ -76,7 +182,7 @@ export default function AdminDashboardDemo() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-        {stats.map((stat, index) => {
+        {statsCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <Card key={index} className="glass-card border-white/20 bg-white/50 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
@@ -90,11 +196,15 @@ export default function AdminDashboardDemo() {
               </CardHeader>
               <CardContent className="space-y-1">
                 <div className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
-                  {stat.value}
+                  {loading ? (
+                    <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                  ) : (
+                    stat.value
+                  )}
                 </div>
                 <div className="flex items-center text-xs sm:text-sm">
-                  <TrendingUp className="w-3 h-3 text-green-500 mr-1 flex-shrink-0" />
-                  <span className="text-green-600 font-medium">{stat.change}</span>
+                  <TrendingUp className={`w-3 h-3 mr-1 flex-shrink-0 ${stat.isPositive ? 'text-green-500' : 'text-red-500'}`} />
+                  <span className={`font-medium ${stat.isPositive ? 'text-green-600' : 'text-red-600'}`}>{stat.change}</span>
                   <span className="text-gray-500 ml-1 hidden sm:inline">from last month</span>
                 </div>
               </CardContent>

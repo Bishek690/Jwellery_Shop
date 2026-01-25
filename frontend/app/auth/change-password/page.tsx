@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,12 +21,36 @@ export default function ChangePasswordPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const { user, changePassword, redirectToDashboard, isAuthenticated } = useAuth();
+  const { user, changePassword, redirectToDashboard, isAuthenticated, checkAuth } = useAuth();
 
-  // Redirect to login if not authenticated
-  if (!isAuthenticated && !user) {
-    window.location.href = "/auth/login";
-    return null;
+  // Check auth on mount
+  useEffect(() => {
+    if (!isAuthenticated && !user) {
+      checkAuth();
+    }
+  }, [isAuthenticated, user, checkAuth]);
+
+  // Redirect to login if not authenticated after auth check
+  useEffect(() => {
+    if (!isAuthenticated && !user) {
+      const timer = setTimeout(() => {
+        window.location.href = "/auth/login";
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, user]);
+
+  // Show loading while checking authentication
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+          <CardContent className="p-8 text-center">
+            <p className="text-gray-600">Loading...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -233,7 +257,7 @@ export default function ChangePasswordPage() {
           <CardFooter className="flex flex-col space-y-3">
             <Button 
               type="submit" 
-              className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+              className="w-full mt-4 bg-amber-600 hover:bg-amber-700 text-white"
               disabled={loading}
             >
               {loading ? "Changing Password..." : "Change Password"}

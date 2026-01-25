@@ -194,7 +194,7 @@ export function AdminSidebar({
       label: "POS System",
       icon: ShoppingCart,
       href: "/admin/pos",
-      permission: ["admin", "staff"],
+      permission: ["admin", "staff", "accountant"],
     },
     {
       id: "website",
