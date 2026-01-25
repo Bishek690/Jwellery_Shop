@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
-import { AdminLayout } from "@/components/admin/layout/admin-layout"
 import { 
   Plus, 
   Save, 
@@ -265,7 +264,7 @@ export default function AddProductPage() {
   }
 
   return (
-    <div>
+    <div className="relative flex-shrink-0">
       {/* Back Button */}
       <div className="mb-4">
         <Button

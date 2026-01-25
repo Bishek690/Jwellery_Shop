@@ -296,7 +296,11 @@ export const updateProduct = async (req: AuthRequest, res: Response) => {
     if (discountPrice !== undefined) {
       product.discountPrice = discountPrice && discountPrice !== '' ? Number(discountPrice) : undefined;
     }
-    if (image !== undefined) product.image = image;
+    
+    // Handle uploaded image from multer middleware
+    if (req.file) {
+      product.image = `/uploads/products/${req.file.filename}`;
+    }
     if (images !== undefined) product.images = typeof images === 'string' ? JSON.parse(images) : images;
     if (specifications !== undefined) product.specifications = typeof specifications === 'string' ? JSON.parse(specifications) : specifications;
     if (isActive !== undefined) product.isActive = Boolean(isActive);

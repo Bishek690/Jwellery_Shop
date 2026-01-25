@@ -130,7 +130,9 @@ export default function EditProductPage() {
         })
 
         if (product.image) {
-          setImagePreview(`http://localhost:4000${product.image}`)
+          // Use BACKEND_URL without /api suffix for static files
+          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'
+          setImagePreview(`${backendUrl}${product.image}`)
         }
       } catch (error: any) {
         setError(error.message || "Failed to load product")
@@ -174,7 +176,8 @@ export default function EditProductPage() {
 
   const removeImage = () => {
     setFormData(prev => ({ ...prev, image: undefined }))
-    setImagePreview(formData.currentImage ? `http://localhost:4000${formData.currentImage}` : null)
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'
+    setImagePreview(formData.currentImage ? `${backendUrl}${formData.currentImage}` : null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -286,19 +289,17 @@ export default function EditProductPage() {
 
   if (fetchingProduct) {
     return (
-      <AdminLayout allowedRoles={["admin", "staff", "accountant"]}>
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <Loader2 className="h-12 w-12 animate-spin text-orange-600 mx-auto mb-4" />
             <p className="text-gray-600">Loading product...</p>
           </div>
         </div>
-      </AdminLayout>
     )
   }
 
   return (
-    <div>
+    <div className="relative flex-shrink-0">
       {/* Back Button */}
       <div className="mb-4">
         <Button
