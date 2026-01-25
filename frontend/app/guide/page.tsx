@@ -146,7 +146,7 @@ export default function SystemGuide() {
                     },
                     {
                       title: "Inventory Management",
-                      url: "/inventory",
+                      url: "/admin/inventory",
                       icon: Package,
                       description: "Comprehensive inventory control",
                       features: ["Product catalog", "Stock management", "Category organization"],

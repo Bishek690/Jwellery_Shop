@@ -53,6 +53,15 @@ export default function CustomerLandingPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [selectedRating, setSelectedRating] = useState(0)
+  const [reviewForm, setReviewForm] = useState({
+    name: '',
+    location: '',
+    comment: ''
+  })
+  const [submittingReview, setSubmittingReview] = useState(false)
+  const [reviewMessage, setReviewMessage] = useState('')
   const router = useRouter()
   const { user, isAuthenticated } = useAuth()
 
@@ -95,29 +104,136 @@ export default function CustomerLandingPage() {
     }).format(amount)
   }
 
-  const testimonials = [
-    {
-      name: "Priya Sharma",
-      location: "Kathmandu",
-      rating: 5,
-      comment: "Absolutely stunning jewelry! The craftsmanship is exceptional and the service was outstanding.",
-      image: "/placeholder-lcmqy.png",
-    },
-    {
-      name: "Rajesh Thapa",
-      location: "Pokhara",
-      rating: 5,
-      comment: "Bought my wife's wedding jewelry here. The quality and design exceeded our expectations.",
-      image: "/placeholder-8hgp0.png",
-    },
-    {
-      name: "Sunita Rai",
-      location: "Lalitpur",
-      rating: 5,
-      comment: "Best jewelry store in Nepal! Authentic gold, beautiful designs, and honest pricing.",
-      image: "/placeholder-6fcow.png",
-    },
-  ]
+  const [approvedReviews, setApprovedReviews] = useState<any[]>([])
+
+  // Contact form state
+  const [contactForm, setContactForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: ''
+  })
+  const [submittingContact, setSubmittingContact] = useState(false)
+  const [contactMessage, setContactMessage] = useState('')
+
+  // Fetch approved reviews from backend
+  useEffect(() => {
+    fetchApprovedReviews()
+  }, [])
+
+  const fetchApprovedReviews = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reviews/approved`)
+      if (response.ok) {
+        const data = await response.json()
+        // Only show approved reviews from backend
+        if (data.length > 0) {
+          setApprovedReviews(data)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching reviews:', error)
+    }
+  }
+
+  // Handle review submission
+  const handleSubmitReview = async () => {
+    if (selectedRating === 0) {
+      setReviewMessage('Please select a rating')
+      return
+    }
+
+    if (!reviewForm.name || !reviewForm.location || !reviewForm.comment) {
+      setReviewMessage('Please fill in all fields')
+      return
+    }
+
+    try {
+      setSubmittingReview(true)
+      setReviewMessage('')
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reviews`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: reviewForm.name,
+          location: reviewForm.location,
+          rating: selectedRating,
+          comment: reviewForm.comment
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setReviewMessage('Thank you! Your review has been submitted and will appear after admin approval.')
+        setTimeout(() => {
+          setShowReviewModal(false)
+          setReviewForm({ name: '', location: '', comment: '' })
+          setSelectedRating(0)
+          setReviewMessage('')
+        }, 3000)
+      } else {
+        setReviewMessage(data.message || 'Failed to submit review')
+      }
+    } catch (error) {
+      console.error('Error submitting review:', error)
+      setReviewMessage('Failed to submit review. Please try again.')
+    } finally {
+      setSubmittingReview(false)
+    }
+  }
+
+  // Handle contact form submission
+  const handleSubmitContact = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!contactForm.name || !contactForm.email || !contactForm.message) {
+      setContactMessage('Please fill in all required fields')
+      return
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(contactForm.email)) {
+      setContactMessage('Please enter a valid email address')
+      return
+    }
+
+    try {
+      setSubmittingContact(true)
+      setContactMessage('')
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/contacts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(contactForm)
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setContactMessage(data.message || 'Thank you! Your message has been sent successfully.')
+        setContactForm({ name: '', email: '', phone: '', subject: '', message: '' })
+        setTimeout(() => {
+          setContactMessage('')
+        }, 5000)
+      } else {
+        setContactMessage(data.message || 'Failed to send message. Please try again.')
+      }
+    } catch (error) {
+      console.error('Error submitting contact form:', error)
+      setContactMessage('Failed to send message. Please try again.')
+    } finally {
+      setSubmittingContact(false)
+    }
+  }
 
   const services = [
     {
@@ -530,7 +646,7 @@ export default function CustomerLandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section id="testimonials" className="py-12 sm:py-16 lg:py-20 bg-white/50">
+      <section id="testimonials" className="py-12 sm:py-16 lg:py-20 bg-white/50 overflow-hidden">
         <div className="container mx-auto px-3 sm:px-4 lg:px-6">
           <div className="text-center mb-12 sm:mb-16 animate-slide-in-up">
             <Badge className="luxury-gradient text-white mb-3 sm:mb-4 text-xs sm:text-sm">
@@ -543,36 +659,66 @@ export default function CustomerLandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card
-                key={index}
-                className="glass-card hover:shadow-lg transition-all duration-300 animate-fade-in-scale"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <CardContent className="p-4 sm:p-5 lg:p-6">
-                  <div className="flex items-center mb-3 sm:mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 text-yellow-500 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-gray-700 mb-3 sm:mb-4 italic text-xs sm:text-sm lg:text-base">"{testimonial.comment}"</p>
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <img
-                      src={testimonial.image || "/placeholder.svg"}
-                      alt={testimonial.name}
-                      className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-full object-cover"
-                    />
-                    <div>
-                      <h4 className="font-semibold text-xs sm:text-sm lg:text-base">{testimonial.name}</h4>
-                      <p className="text-xs sm:text-sm text-gray-600">{testimonial.location}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {approvedReviews.length > 0 ? (
+            <div className="relative">
+              <div className="overflow-hidden">
+                <div 
+                  className="flex gap-4 sm:gap-6 lg:gap-8 animate-scroll-reviews"
+                  style={{
+                    animation: 'scroll-left 90s linear infinite',
+                  }}
+                >
+                  {/* Duplicate reviews for seamless loop */}
+                  {[...approvedReviews, ...approvedReviews].map((testimonial, index) => (
+                    <Card
+                      key={index}
+                      className="glass-card hover:shadow-lg transition-all duration-300 flex-shrink-0 w-[280px] sm:w-[320px] lg:w-[380px]"
+                    >
+                      <CardContent className="p-4 sm:p-5 lg:p-6">
+                        <div className="flex items-center mb-3 sm:mb-4">
+                          {[...Array(testimonial.rating)].map((_, i) => (
+                            <Star key={i} className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 text-yellow-500 fill-current" />
+                          ))}
+                        </div>
+                        <p className="text-gray-700 mb-3 sm:mb-4 italic text-xs sm:text-sm lg:text-base line-clamp-3">"{testimonial.comment}"</p>
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-full bg-gradient-to-br from-orange-400 to-amber-600 flex items-center justify-center text-white font-semibold">
+                            {testimonial.name.charAt(0)}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-xs sm:text-sm lg:text-base">{testimonial.name}</h4>
+                            <p className="text-xs sm:text-sm text-gray-600">{testimonial.location}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Star className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+              <p className="text-gray-500">No reviews yet. Be the first to share your experience!</p>
+            </div>
+          )}
         </div>
+
+        {/* Add CSS for animation */}
+        <style jsx>{`
+          @keyframes scroll-left {
+            0% {
+              transform: translateX(0);
+            }
+            100% {
+              transform: translateX(-50%);
+            }
+          }
+          
+          .animate-scroll-reviews:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
       </section>
 
       {/* Contact Section */}
@@ -631,20 +777,61 @@ export default function CustomerLandingPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <Input placeholder="Your Name" className="glass-card border-orange-200/50 text-sm" />
-                  <Input placeholder="Your Email" className="glass-card border-orange-200/50 text-sm" />
-                </div>
-                <Input placeholder="Subject" className="glass-card border-orange-200/50 text-sm" />
-                <textarea
-                  placeholder="Your Message"
-                  rows={4}
-                  className="w-full px-3 py-2 glass-card border border-orange-200/50 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none text-sm"
-                />
-                <Button className="w-full luxury-gradient hover:shadow-lg transition-all duration-300 text-sm sm:text-base py-2 sm:py-3">
-                  <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  Send Message
-                </Button>
+                {contactMessage && (
+                  <div className={`p-3 rounded-lg text-sm ${contactMessage.includes('Thank you') || contactMessage.includes('success') ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+                    {contactMessage}
+                  </div>
+                )}
+                
+                <form onSubmit={handleSubmitContact} className="space-y-3 sm:space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <Input 
+                      placeholder="Your Name *" 
+                      value={contactForm.name}
+                      onChange={(e) => setContactForm({...contactForm, name: e.target.value})}
+                      className="glass-card border-orange-200/50 text-sm" 
+                      required
+                    />
+                    <Input 
+                      type="email"
+                      placeholder="Your Email *" 
+                      value={contactForm.email}
+                      onChange={(e) => setContactForm({...contactForm, email: e.target.value})}
+                      className="glass-card border-orange-200/50 text-sm" 
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <Input 
+                      placeholder="Phone (Optional)" 
+                      value={contactForm.phone}
+                      onChange={(e) => setContactForm({...contactForm, phone: e.target.value})}
+                      className="glass-card border-orange-200/50 text-sm" 
+                    />
+                    <Input 
+                      placeholder="Subject (Optional)" 
+                      value={contactForm.subject}
+                      onChange={(e) => setContactForm({...contactForm, subject: e.target.value})}
+                      className="glass-card border-orange-200/50 text-sm" 
+                    />
+                  </div>
+                  <textarea
+                    placeholder="Your Message *"
+                    rows={4}
+                    value={contactForm.message}
+                    onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
+                    className="w-full px-3 py-2 glass-card border border-orange-200/50 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none text-sm"
+                    required
+                  />
+                  <Button 
+                    type="submit"
+                    disabled={submittingContact}
+                    className="w-full luxury-gradient hover:shadow-lg transition-all duration-300 text-sm sm:text-base py-2 sm:py-3"
+                  >
+                    <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    {submittingContact ? 'Sending...' : 'Send Message'}
+                  </Button>
+                </form>
               </CardContent>
             </Card>
           </div>
@@ -652,6 +839,140 @@ export default function CustomerLandingPage() {
       </section>
 
       <LandingFooter />
+
+      {/* Floating Review Button */}
+      <div className="fixed bottom-6 right-6 z-50 animate-fade-in-scale">
+        <Button
+          onClick={() => {
+            if (!isAuthenticated || (user && user.role !== "customer")) {
+              router.push("/auth/login")
+            } else {
+              setShowReviewModal(true)
+            }
+          }}
+          size="lg"
+          className="luxury-gradient hover:shadow-2xl transition-all duration-300 rounded-full p-4 sm:p-6 group animate-float shadow-xl"
+        >
+          <div className="flex items-center gap-2">
+            <Star className="h-5 w-5 sm:h-6 sm:w-6 text-white group-hover:scale-110 transition-transform duration-300 fill-current" />
+            <span className="hidden sm:inline font-semibold">Review</span>
+          </div>
+        </Button>
+      </div>
+
+      {/* Review Modal */}
+      {showReviewModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <Card className="glass-card max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-slide-in-up">
+            <CardHeader className="p-4 sm:p-6 border-b">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
+                    <Star className="h-6 w-6 text-orange-600 fill-current" />
+                    Write a Review
+                  </CardTitle>
+                  <CardDescription className="text-sm mt-2">
+                    Share your experience with Shree Hans RKS Jewellers
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowReviewModal(false)}
+                  className="hover:bg-gray-100"
+                >
+                  ✕
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
+              {reviewMessage && (
+                <div className={`p-3 rounded-lg text-sm ${reviewMessage.includes('Thank you') ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+                  {reviewMessage}
+                </div>
+              )}
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Your Rating *</label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((rating) => (
+                    <button
+                      key={rating}
+                      type="button"
+                      onClick={() => setSelectedRating(rating)}
+                      className="hover:scale-110 transition-transform duration-200"
+                    >
+                      <Star 
+                        className={`h-8 w-8 stroke-2 cursor-pointer transition-colors duration-200 ${
+                          rating <= selectedRating 
+                            ? 'text-yellow-500 fill-current stroke-yellow-600' 
+                            : 'text-gray-300 stroke-gray-400 hover:text-yellow-400 hover:stroke-yellow-500'
+                        }`} 
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Your Name *</label>
+                  <Input
+                    placeholder="Enter your name"
+                    value={reviewForm.name}
+                    onChange={(e) => setReviewForm({...reviewForm, name: e.target.value})}
+                    className="glass-card border-orange-200/50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Location *</label>
+                  <Input
+                    placeholder="City, Nepal"
+                    value={reviewForm.location}
+                    onChange={(e) => setReviewForm({...reviewForm, location: e.target.value})}
+                    className="glass-card border-orange-200/50"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Your Review *</label>
+                <textarea
+                  placeholder="Tell us about your experience..."
+                  rows={6}
+                  value={reviewForm.comment}
+                  onChange={(e) => setReviewForm({...reviewForm, comment: e.target.value})}
+                  className="w-full px-3 py-2 glass-card border border-orange-200/50 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none text-sm"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={() => {
+                    setShowReviewModal(false)
+                    setReviewForm({ name: '', location: '', comment: '' })
+                    setSelectedRating(0)
+                    setReviewMessage('')
+                  }}
+                  variant="outline"
+                  className="flex-1"
+                  disabled={submittingReview}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSubmitReview}
+                  disabled={submittingReview}
+                  className="flex-1 luxury-gradient hover:shadow-lg transition-all duration-300"
+                >
+                  <Star className="h-4 w-4 mr-2 fill-current" />
+                  {submittingReview ? 'Submitting...' : 'Submit Review'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

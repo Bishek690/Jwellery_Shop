@@ -8,6 +8,8 @@ import userRoutes from "./routes/userRoutes";
 import productRoutes from "./routes/productRoutes";
 import dashboardRoutes from "./routes/dashboardRoutes";
 import orderRoutes from "./routes/orderRoutes";
+import reviewRoutes from "./routes/reviewRoutes";
+import contactRoutes from "./routes/contactRoutes";
 
 require("dotenv").config();
 
@@ -58,6 +60,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/contacts", contactRoutes);
 
 // Global error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

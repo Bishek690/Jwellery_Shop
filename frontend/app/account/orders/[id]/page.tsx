@@ -314,81 +314,83 @@ export default function OrderDetailPage() {
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-4 sm:space-y-6">
             {/* Order Summary */}
-            <Card className="glass-card sticky top-16 sm:top-20 lg:top-24">
-              <CardHeader>
-                <CardTitle className="text-lg sm:text-xl">Order Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Subtotal</span>
-                    <span className="font-medium">{formatPrice(order.subtotal)}</span>
+            <div className="lg:sticky lg:top-20 space-y-4 sm:space-y-6">
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="text-lg sm:text-xl">Order Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Subtotal</span>
+                      <span className="font-medium">{formatPrice(order.subtotal)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Shipping</span>
+                      <span className="font-medium">
+                        {order.shippingCost === 0 ? "Free" : formatPrice(order.shippingCost)}
+                      </span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between font-bold text-base sm:text-lg">
+                      <span>Total</span>
+                      <span className="text-orange-600">{formatPrice(order.totalAmount)}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Shipping</span>
-                    <span className="font-medium">
-                      {order.shippingCost === 0 ? "Free" : formatPrice(order.shippingCost)}
-                    </span>
+
+                  <Separator />
+
+                  {/* Payment Info */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <CreditCard className="h-4 w-4 text-gray-500" />
+                      <span className="text-gray-600">Payment Method:</span>
+                    </div>
+                    <p className="text-sm font-medium ml-6">
+                      {order.paymentMethod === "cod" ? "Cash on Delivery" : "Online Payment"}
+                    </p>
+                    <Badge variant="outline" className="ml-6">
+                      {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Shipping Address */}
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-orange-600" />
+                    Delivery Address
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <p className="font-semibold text-sm sm:text-base">{order.shippingName}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1">{order.shippingAddress}</p>
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      {order.shippingCity}{order.shippingState && `, ${order.shippingState}`}
+                    </p>
+                    {order.shippingZipCode && (
+                      <p className="text-xs sm:text-sm text-gray-600">{order.shippingZipCode}</p>
+                    )}
                   </div>
                   <Separator />
-                  <div className="flex justify-between font-bold text-base sm:text-lg">
-                    <span>Total</span>
-                    <span className="text-orange-600">{formatPrice(order.totalAmount)}</span>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Payment Info */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <CreditCard className="h-4 w-4 text-gray-500" />
-                    <span className="text-gray-600">Payment Method:</span>
-                  </div>
-                  <p className="text-sm font-medium ml-6">
-                    {order.paymentMethod === "cod" ? "Cash on Delivery" : "Online Payment"}
-                  </p>
-                  <Badge variant="outline" className="ml-6">
-                    {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Shipping Address */}
-            <Card className="glass-card">
-              <CardHeader>
-                <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-orange-600" />
-                  Delivery Address
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <p className="font-semibold text-sm sm:text-base">{order.shippingName}</p>
-                  <p className="text-xs sm:text-sm text-gray-600 mt-1">{order.shippingAddress}</p>
-                  <p className="text-xs sm:text-sm text-gray-600">
-                    {order.shippingCity}{order.shippingState && `, ${order.shippingState}`}
-                  </p>
-                  {order.shippingZipCode && (
-                    <p className="text-xs sm:text-sm text-gray-600">{order.shippingZipCode}</p>
-                  )}
-                </div>
-                <Separator />
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-                    <Phone className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span>{order.shippingPhone}</span>
-                  </div>
-                  {order.shippingEmail && (
+                  <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-                      <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="truncate">{order.shippingEmail}</span>
+                      <Phone className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span>{order.shippingPhone}</span>
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                    {order.shippingEmail && (
+                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
+                        <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="truncate">{order.shippingEmail}</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>

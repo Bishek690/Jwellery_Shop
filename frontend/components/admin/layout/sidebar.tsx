@@ -29,6 +29,7 @@ import {
   Globe,
   ChevronDown,
   ChevronUp,
+  Star,
 } from "lucide-react"
 
 interface AdminSidebarProps {
@@ -121,28 +122,28 @@ export function AdminSidebar({
       id: "inventory",
       label: "Inventory",
       icon: Package,
-      href: "/inventory",
+      href: "/admin/inventory",
       badge: totalProductCount > 0 ? totalProductCount : undefined,
       badgeColor: "secondary",
       permission: ["admin", "staff"],
     },
     {
       id: "user-management",
-      label: "User Management",
+      label: "Staff Management",
       icon: User,
       href: "#",
       permission: ["admin"],
       children: [
         {
           id: "create-user",
-          label: "Create User",
+          label: "Create Staff",
           icon: User,
           href: "/admin/users/create",
           permission: ["admin"],
         },
         {
           id: "manage-users",
-          label: "Manage Users",
+          label: "Manage Staff",
           icon: Users,
           href: "/admin/users",
           permission: ["admin"],
@@ -175,6 +176,20 @@ export function AdminSidebar({
       permission: ["admin", "staff", "accountant"],
     },
     {
+      id: "reviews",
+      label: "Reviews",
+      icon: Star,
+      href: "/admin/reviews",
+      permission: ["admin", "staff"],
+    },
+    {
+      id: "contacts",
+      label: "Contacts",
+      icon: MessageSquare,
+      href: "/admin/contacts",
+      permission: ["admin", "staff"],
+    },
+    {
       id: "pos",
       label: "POS System",
       icon: ShoppingCart,
@@ -188,13 +203,13 @@ export function AdminSidebar({
       href: "/",
       permission: ["admin", "staff", "accountant"],
     },
-    {
-      id: "settings",
-      label: "Settings",
-      icon: Settings,
-      href: "/admin/settings",
-      permission: ["admin"],
-    },
+    // {
+    //   id: "settings",
+    //   label: "Settings",
+    //   icon: Settings,
+    //   href: "/admin/settings",
+    //   permission: ["admin"],
+    // },
   ]
 
   // Filter menu items based on user permissions
