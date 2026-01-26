@@ -9,10 +9,12 @@ import {
   CheckCircle, Clock, AlertCircle, Star, Loader2
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { MetalPriceModal } from "@/components/metal-price-modal";
 
 export default function AdminDashboardDemo() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [showPriceModal, setShowPriceModal] = useState(false);
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalProducts: 0,
@@ -33,16 +35,16 @@ export default function AdminDashboardDemo() {
         setLoading(true);
         
         // Fetch all stats in parallel
-        const [dashboardRes, productsRes] = await Promise.all([
+        const [dashboardRes, productsRes, ordersRes] = await Promise.all([
           fetch('/api/dashboard/stats', { credentials: 'include' }),
           fetch('/api/products/stats', { credentials: 'include' }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/admin/stats`, { credentials: 'include' }),
         ]);
 
         const dashboardData = dashboardRes.ok ? await dashboardRes.json() : {
           totalUsers: 0,
-          totalRevenue: 0,
           ordersToday: 0,
-          changes: { users: 0, revenue: 0, orders: 0 }
+          changes: { users: 0, orders: 0 }
         };
         
         const productsData = productsRes.ok ? await productsRes.json() : { 
@@ -50,14 +52,19 @@ export default function AdminDashboardDemo() {
           change: 0
         };
 
+        const ordersData = ordersRes.ok ? await ordersRes.json() : {
+          totalRevenue: 0,
+          totalOrders: 0,
+        };
+
         setStats({
           totalUsers: dashboardData.totalUsers || 0,
           totalProducts: productsData.totalProducts || 0,
-          ordersToday: dashboardData.ordersToday || 0,
-          totalRevenue: dashboardData.totalRevenue || 0,
+          ordersToday: dashboardData.ordersToday || ordersData.totalOrders || 0,
+          totalRevenue: ordersData.totalRevenue || 0,
           changes: {
             users: dashboardData.changes?.users || 0,
-            revenue: dashboardData.changes?.revenue || 0,
+            revenue: 0, // Can calculate from previous period if needed
             orders: dashboardData.changes?.orders || 0,
             products: productsData.change || 0,
           }
@@ -180,6 +187,19 @@ export default function AdminDashboardDemo() {
         </div>
       </div>
 
+      {/* Update Metal Prices Button - Only for Admin and Staff */}
+      {user && (user.role === "admin" || user.role === "staff") && (
+        <div className="flex justify-end">
+          <Button
+            onClick={() => setShowPriceModal(true)}
+            className="luxury-gradient hover:shadow-xl transition-all duration-300 animate-fade-in-scale"
+          >
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Update Metal Prices
+          </Button>
+        </div>
+      )}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         {statsCards.map((stat, index) => {
@@ -212,6 +232,12 @@ export default function AdminDashboardDemo() {
           );
         })}
       </div>
+
+      {/* Metal Price Modal */}
+      <MetalPriceModal
+        open={showPriceModal}
+        onClose={() => setShowPriceModal(false)}
+      />
       
     </div>
   );

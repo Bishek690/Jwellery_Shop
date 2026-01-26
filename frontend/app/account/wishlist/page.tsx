@@ -82,6 +82,7 @@ export default function WishlistPage() {
       purity: item.purity,
       weight: 0, // You might want to add weight to wishlist items
       sku: "", // You might want to add SKU to wishlist items
+      category: item.category,
     })
 
     toast({

@@ -69,6 +69,7 @@ export class OrderController {
             productId: isNaN(parsedId) ? 0 : parsedId,
             productName: item.name || "",
             productSku: item.sku || "",
+            productCategory: item.category || null,
             productImage: item.image || null,
             metalType: item.metalType || "",
             purity: item.purity || "",

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { CustomerNavbar } from "@/components/customer-navbar"
 import { LandingNavbar } from "@/components/landing-navbar"
 import { LandingFooter } from "@/components/landing-footer"
+import { MetalPriceDisplay } from "@/components/metal-price-display"
 import {
   Search,
   Star,
@@ -377,6 +378,11 @@ export default function CustomerLandingPage() {
       {/* Featured Collections */}
       <section id="collections" className="py-12 sm:py-16 lg:py-20">
         <div className="container mx-auto px-3 sm:px-4 lg:px-6">
+          {/* Metal Prices Display */}
+          <div className="mb-8 sm:mb-12 animate-slide-in-up">
+            <MetalPriceDisplay />
+          </div>
+
           <div className="text-center mb-12 sm:mb-16 animate-slide-in-up">
             <Badge className="luxury-gradient text-white mb-3 sm:mb-4 text-xs sm:text-sm">
               <Gem className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />

@@ -125,6 +125,9 @@ export class OrderItem {
   productSku: string
 
   @Column({ nullable: true })
+  productCategory: string
+
+  @Column({ nullable: true })
   productImage: string
 
   @Column()

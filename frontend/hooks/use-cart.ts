@@ -13,6 +13,7 @@ export interface CartItem {
   purity: string;
   weight: number;
   sku: string;
+  category?: string;
 }
 
 export const useCart = () => {

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { CustomerNavbar } from "@/components/customer-navbar"
 import { LandingFooter } from "@/components/landing-footer"
 import { ProductGrid } from "@/components/product-grid"
+import { MetalPriceDisplay } from "@/components/metal-price-display"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
@@ -128,6 +129,11 @@ export default function ShopPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
+        {/* Metal Prices Display */}
+        <div className="mb-6">
+          <MetalPriceDisplay />
+        </div>
+
         {/* Filters and Sort */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
           <div className="flex items-center space-x-4">

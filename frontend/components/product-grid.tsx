@@ -184,6 +184,7 @@ export function ProductGrid({
       purity: product.purity,
       weight: product.weight,
       sku: product.sku,
+      category: product.category,
     })
 
     toast({

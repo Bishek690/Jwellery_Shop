@@ -7,9 +7,11 @@ import { AppDataSource } from "./config/data-source";
 import userRoutes from "./routes/userRoutes";
 import productRoutes from "./routes/productRoutes";
 import dashboardRoutes from "./routes/dashboardRoutes";
+import analyticsRoutes from "./routes/analyticsRoutes";
 import orderRoutes from "./routes/orderRoutes";
 import reviewRoutes from "./routes/reviewRoutes";
 import contactRoutes from "./routes/contactRoutes";
+import metalPriceRoutes from "./routes/metalPriceRoutes";
 
 require("dotenv").config();
 
@@ -59,9 +61,11 @@ app.get("/api/health", (req, res) => {
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/analytics", analyticsRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/contacts", contactRoutes);
+app.use("/api/metal-prices", metalPriceRoutes);
 
 // Global error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

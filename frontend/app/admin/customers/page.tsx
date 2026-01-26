@@ -21,15 +21,6 @@ export default function CustomersPage() {
             </p>
           </div>
         </div>
-
-        <Button 
-          size="default" 
-          className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white shadow-lg hover:shadow-xl transition-all whitespace-nowrap flex-shrink-0"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          <span className="hidden xs:inline">Add Customer</span>
-          <span className="xs:hidden">Add</span>
-        </Button>
       </div>
 
       {/* Customer Table */}
