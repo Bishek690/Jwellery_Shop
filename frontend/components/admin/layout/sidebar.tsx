@@ -203,13 +203,6 @@ export function AdminSidebar({
       href: "/",
       permission: ["admin", "staff", "accountant"],
     },
-    // {
-    //   id: "settings",
-    //   label: "Settings",
-    //   icon: Settings,
-    //   href: "/admin/settings",
-    //   permission: ["admin"],
-    // },
   ]
 
   // Filter menu items based on user permissions

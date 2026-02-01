@@ -18,10 +18,23 @@ interface MetalPrice {
 export function MetalPriceDisplay() {
   const [prices, setPrices] = useState<MetalPrice | null>(null)
   const [loading, setLoading] = useState(true)
+  const [currentDate, setCurrentDate] = useState<string>('')
 
   useEffect(() => {
     fetchPrices()
+    // Update the current date on mount
+    updateCurrentDate()
   }, [])
+
+  const updateCurrentDate = () => {
+    const today = new Date()
+    const formatted = today.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    })
+    setCurrentDate(formatted)
+  }
 
   const fetchPrices = async () => {
     try {
@@ -46,12 +59,6 @@ export function MetalPriceDisplay() {
     }).format(price)
   }
 
-  const getCurrentDay = () => {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-    const today = new Date()
-    return days[today.getDay()]
-  }
-
   if (loading || !prices || prices.goldPricePerTola === 0) {
     return null
   }
@@ -60,7 +67,10 @@ export function MetalPriceDisplay() {
     <Card className="glass-card border-amber-200 bg-gradient-to-r from-orange-50 to-amber-50">
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-gray-900">{getCurrentDay()}'s Prices</h3>
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900">Today's Prices</h3>
+            <p className="text-xs text-gray-600">{currentDate}</p>
+          </div>
           <Badge variant="secondary" className="bg-orange-100 text-orange-700 text-xs">
             Live
           </Badge>

@@ -17,8 +17,8 @@ router.get('/approved', getApprovedReviews);
 router.post('/', authenticate, createReview);
 
 // Admin routes
-router.get('/admin/all', authenticate, authorize(['admin']), getAllReviews);
-router.patch('/admin/:id/status', authenticate, authorize(['admin']), updateReviewStatus);
-router.delete('/admin/:id', authenticate, authorize(['admin']), deleteReview);
+router.get('/admin/all', authenticate, authorize(['admin', 'staff']), getAllReviews);
+router.patch('/admin/:id/status', authenticate, authorize(['admin', 'staff']), updateReviewStatus);
+router.delete('/admin/:id', authenticate, authorize(['admin', 'staff']), deleteReview);
 
 export default router;
