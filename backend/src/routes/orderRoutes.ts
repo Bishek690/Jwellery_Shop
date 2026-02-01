@@ -15,6 +15,6 @@ router.get("/admin/all", authenticate, authorize(["admin", "staff"]), OrderContr
 router.get("/admin/stats", authenticate, authorize(["admin", "staff"]), OrderController.getOrderStats)
 router.get("/admin/:id", authenticate, authorize(["admin", "staff"]), OrderController.getOrderByIdAdmin)
 router.put("/admin/:id/status", authenticate, authorize(["admin", "staff"]), OrderController.updateOrderStatus)
-router.put("/admin/:id/payment", authenticate, authorize(["admin"]), OrderController.updatePaymentStatus)
+router.put("/admin/:id/payment", authenticate, authorize(["admin", "staff"]), OrderController.updatePaymentStatus)
 
 export default router

@@ -203,7 +203,7 @@ export default function AdminContactsPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
+          <Card className="bg-white">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -215,7 +215,7 @@ export default function AdminContactsPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-white">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -227,7 +227,7 @@ export default function AdminContactsPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-white">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -239,7 +239,7 @@ export default function AdminContactsPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-white">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -253,7 +253,7 @@ export default function AdminContactsPage() {
         </div>
 
         {/* Filters */}
-        <Card>
+        <Card className="bg-white">
           <CardHeader>
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
               <div className="flex-1 w-full sm:w-auto">
@@ -280,7 +280,7 @@ export default function AdminContactsPage() {
         </Card>
 
         {/* Contacts Table */}
-        <Card>
+        <Card className="bg-white">
           <CardHeader>
             <CardTitle>Messages</CardTitle>
             <CardDescription>

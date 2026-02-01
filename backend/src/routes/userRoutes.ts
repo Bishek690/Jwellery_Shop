@@ -10,6 +10,9 @@ import {
   deleteUser,
   createUserByAdmin,
   changePassword,
+  requestPasswordReset,
+  verifyPasswordResetOTP,
+  resetPasswordWithOTP,
 } from "../controller/userController";
 import { authenticate } from "../middleware/authMiddleware";
 import { validateCreateUser, validateUpdateUser } from "../validators/userValidator";
@@ -21,6 +24,11 @@ router.post("/login", login);
 router.post("/logout", authenticate, logout);
 // Fallback logout without authentication (in case token is invalid)
 router.post("/logout-force", logout);
+
+// Password reset routes (public)
+router.post("/forgot-password", requestPasswordReset);
+router.post("/verify-otp", verifyPasswordResetOTP);
+router.post("/reset-password", resetPasswordWithOTP);
 
 // Get current user profile
 router.get("/me", authenticate, getMe);

@@ -348,8 +348,12 @@ export class OrderController {
       await orderRepository.save(order)
 
       // Send payment confirmation email when status changes to "paid"
+      console.log(`Payment status change: ${previousPaymentStatus} -> ${paymentStatus}`);
+      console.log(`Should send email: ${paymentStatus === PaymentStatus.PAID && previousPaymentStatus !== PaymentStatus.PAID}`);
+      
       if (paymentStatus === PaymentStatus.PAID && previousPaymentStatus !== PaymentStatus.PAID) {
         try {
+          console.log(`Attempting to send payment confirmation email to ${order.customer.email}`);
           await sendPaymentConfirmationEmail({
             to: order.customer.email,
             name: order.customer.name,
@@ -357,11 +361,13 @@ export class OrderController {
             totalAmount: order.totalAmount,
             paymentMethod: order.paymentMethod,
           });
-          console.log(`Payment confirmation email sent to ${order.customer.email}`);
+          console.log(`Payment confirmation email sent successfully to ${order.customer.email}`);
         } catch (emailError) {
           console.error("Failed to send payment confirmation email:", emailError);
           // Don't fail the payment status update if email fails
         }
+      } else {
+        console.log(`Skipping email: paymentStatus=${paymentStatus}, previousStatus=${previousPaymentStatus}, PAID=${PaymentStatus.PAID}`);
       }
 
       res.json({ message: "Payment status updated successfully", order })

@@ -125,11 +125,7 @@ export default function AccountPage() {
 
   const getUserInitials = () => {
     if (!user) return "U"
-    const names = user.name.split(" ")
-    if (names.length >= 2) {
-      return `${names[0][0]}${names[1][0]}`.toUpperCase()
-    }
-    return user.name.substring(0, 2).toUpperCase()
+    return user.name.charAt(0).toUpperCase()
   }
 
   const getMemberSince = () => {
@@ -213,14 +209,13 @@ export default function AccountPage() {
             <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
               <div className="relative">
                 <Avatar className="w-24 h-24 border-4 border-primary/20 shadow-lg">
-                  <AvatarImage src="/placeholder.svg" />
-                  <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-4xl font-bold">
                     {getUserInitials()}
                   </AvatarFallback>
                 </Avatar>
               </div>
               <div className="text-center md:text-left flex-1">
-                <h1 className="text-3xl font-bold text-foreground mb-2">Welcome back, {user?.name}!</h1>
+                <h1 className="text-3xl font-bold text-foreground mb-2">Welcome back, {user?.name}</h1>
                 <p className="text-muted-foreground mb-4">Customer since {getMemberSince()}</p>
               </div>
               <div className="text-center">
@@ -235,8 +230,8 @@ export default function AccountPage() {
         </div>
 
         <div className="animate-fade-in-scale">
-          <Card className="hover-lift max-w-2xl mx-auto">
-            <CardHeader>
+          <Card className="hover-lift max-w-4xl mx-auto bg-white shadow-lg">
+            <CardHeader className="border-b">
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <User className="w-5 h-5 text-primary" />
@@ -254,75 +249,77 @@ export default function AccountPage() {
                 )}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="pt-6">
               {error && (
-                <Alert className="border-red-200 bg-red-50">
+                <Alert className="border-red-200 bg-red-50 mb-4">
                   <AlertDescription className="text-red-700">{error}</AlertDescription>
                 </Alert>
               )}
 
               {success && (
-                <Alert className="border-green-200 bg-green-50">
+                <Alert className="border-green-200 bg-green-50 mb-4">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <AlertDescription className="text-green-700">{success}</AlertDescription>
                 </Alert>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="hover-glow focus:ring-2 focus:ring-primary"
-                  readOnly={!isEditing}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="hover-glow focus:ring-2 focus:ring-primary"
-                  readOnly={!isEditing}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  className="hover-glow focus:ring-2 focus:ring-primary"
-                  readOnly={!isEditing}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="role">Account Type</Label>
-                <Input
-                  id="role"
-                  value={user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : ""}
-                  className="hover-glow focus:ring-2 focus:ring-primary"
-                  readOnly
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="memberSince">Member Since</Label>
-                <Input
-                  id="memberSince"
-                  value={user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ""}
-                  className="hover-glow focus:ring-2 focus:ring-primary"
-                  readOnly
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="bg-gray-100 hover-glow focus:ring-2 focus:ring-primary"
+                    readOnly={!isEditing}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="bg-gray-100 hover-glow focus:ring-2 focus:ring-primary"
+                    readOnly={!isEditing}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="bg-gray-100 hover-glow focus:ring-2 focus:ring-primary"
+                    readOnly={!isEditing}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="role">Account Type</Label>
+                  <Input
+                    id="role"
+                    value={user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : ""}
+                    className="bg-gray-100 hover-glow focus:ring-2 focus:ring-primary"
+                    readOnly
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="memberSince">Member Since</Label>
+                  <Input
+                    id="memberSince"
+                    value={user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ""}
+                    className="bg-gray-100 hover-glow focus:ring-2 focus:ring-primary"
+                    readOnly
+                  />
+                </div>
               </div>
               
               {isEditing ? (
-                <div className="flex gap-3 pt-2">
+                <div className="flex gap-3 pt-6 mt-6 border-t">
                   <Button 
                     className="flex-1 luxury-gradient hover:opacity-90"
                     onClick={handleSave}
@@ -341,15 +338,17 @@ export default function AccountPage() {
                   </Button>
                 </div>
               ) : (
-                <Link href="/auth/change-password" className="block">
-                  <Button 
-                    className="w-full luxury-gradient hover:opacity-90"
-                    variant="default"
-                  >
-                    <Key className="w-4 h-4 mr-2" />
-                    Change Password
-                  </Button>
-                </Link>
+                <div className="pt-6 mt-6 border-t">
+                  <Link href="/auth/change-password" className="block">
+                    <Button 
+                      className="w-full luxury-gradient hover:opacity-90"
+                      variant="default"
+                    >
+                      <Key className="w-4 h-4 mr-2" />
+                      Change Password
+                    </Button>
+                  </Link>
+                </div>
               )}
             </CardContent>
           </Card>

@@ -362,7 +362,7 @@ export default function AdminOrderDetailPage() {
                   </DialogContent>
                 </Dialog>
               )}
-              {(order.status === "delivered" || user?.role === "admin") && (
+              {(order.status === "delivered" || ["admin", "staff"].includes(user?.role)) && (
                 <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
                   <DialogTrigger asChild>
                     <Button size="sm" variant="outline">

@@ -156,7 +156,7 @@ export const useAuth = () => {
         router.push("/admin");
         break;
       case "accountant":
-        router.push("/admin/pos");
+        router.push("/admin");
         break;
       case "customer":
       default:

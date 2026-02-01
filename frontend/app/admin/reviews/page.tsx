@@ -210,7 +210,7 @@ export default function AdminReviewsPage() {
         </div>
 
         {/* Filters */}
-        <Card>
+        <Card className="bg-white">
           <CardContent className="pt-6">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1 relative">
@@ -239,7 +239,7 @@ export default function AdminReviewsPage() {
         </Card>
 
         {/* Reviews Table */}
-        <Card>
+        <Card className="bg-white">
           <CardHeader>
             <CardTitle>Reviews</CardTitle>
             <CardDescription>

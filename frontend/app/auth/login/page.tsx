@@ -102,7 +102,7 @@ export default function LoginPage() {
                 href="/auth/forgot-password" 
                 className="text-sm mb-2 text-amber-600 hover:text-amber-800 hover:underline"
               >
-                Forgot your password?
+                Forgot password?
               </Link>
             </div>
           </CardContent>

@@ -30,6 +30,12 @@ export class User {
   @Column({ default: false })
   mustChangePassword!: boolean;
 
+  @Column({ nullable: true })
+  resetPasswordOTP?: string;
+
+  @Column({ nullable: true })
+  resetPasswordOTPExpiry?: Date;
+
   @CreateDateColumn()
   createdAt!: Date;
 

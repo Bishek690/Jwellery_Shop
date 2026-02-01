@@ -438,3 +438,61 @@ export const sendPaymentConfirmationEmail = async (params: {
 
   return sendEmail({ to, subject, text, html });
 };
+
+export const sendPasswordResetOTPEmail = async (params: { to: string; name: string; otp: string }) => {
+  const { to, name, otp } = params;
+  const subject = "Password Reset OTP - Jewelry Store";
+
+  const text = `Hello ${name},\n\nYou have requested to reset your password.\n\nYour OTP (One-Time Password) is: ${otp}\n\nThis OTP will expire in 10 minutes. Please use it to reset your password.\n\nIf you did not request this password reset, please ignore this email or contact support immediately.\n\nBest regards,\n${process.env.EMAIL_FROM || "Jewelry Store"}`;
+
+  const html = `
+  <div style="font-family: Arial, sans-serif; color: #222; max-width: 600px; margin: 0 auto;">
+    <div style="background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+      <h1 style="color: white; margin: 0; font-size: 28px;">🔐 Password Reset Request</h1>
+    </div>
+    <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
+      <h2 style="color:#333; margin-top: 0;">Hello ${name},</h2>
+      <p style="font-size: 16px; line-height: 1.6;">We received a request to reset your password. Use the OTP below to proceed with resetting your password.</p>
+      
+      <div style="background: white; padding: 30px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f39c12; text-align: center;">
+        <p style="margin: 0 0 15px 0; font-weight: 600; color: #333; font-size: 14px;">YOUR OTP CODE</p>
+        <div style="background: #fff3cd; padding: 20px; border-radius: 8px; display: inline-block;">
+          <span style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #f39c12; font-family: monospace;">${otp}</span>
+        </div>
+        <p style="margin: 15px 0 0 0; font-size: 13px; color: #666;">Enter this code to reset your password</p>
+      </div>
+
+      <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
+        <h3 style="color: #856404; margin-top: 0; font-size: 16px;">⏰ Important</h3>
+        <p style="color: #856404; margin: 0; font-size: 14px;">This OTP will expire in <strong>10 minutes</strong>. Please use it promptly to reset your password.</p>
+      </div>
+
+      <div style="background: #f8d7da; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc3545;">
+        <h3 style="color: #721c24; margin-top: 0; font-size: 16px;">🛡️ Security Notice</h3>
+        <p style="color: #721c24; margin: 0; font-size: 14px;">
+          If you did not request this password reset, please ignore this email or contact our support team immediately. Your account security is important to us.
+        </p>
+      </div>
+
+      <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196f3;">
+        <h3 style="color: #1565c0; margin-top: 0; font-size: 16px;">💡 Security Tips</h3>
+        <ul style="color: #333; margin: 5px 0; line-height: 1.8; font-size: 14px;">
+          <li>Never share your OTP with anyone</li>
+          <li>Choose a strong, unique password</li>
+          <li>We will never ask for your password via email</li>
+        </ul>
+      </div>
+
+      <p style="font-size: 14px; color: #666; text-align: center; margin-top: 30px;">
+        Need help? Contact us at <a href="mailto:${process.env.EMAIL_FROM || 'support@jewelry-store.com'}" style="color: #f39c12;">${process.env.EMAIL_FROM || 'support@jewelry-store.com'}</a>
+      </p>
+    </div>
+    <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+      <p>&copy; ${new Date().getFullYear()} ${process.env.EMAIL_FROM || "Jewelry Store"}. All rights reserved.</p>
+      <p style="margin: 5px 0 0 0;">This is an automated message. Please do not reply to this email.</p>
+    </div>
+  </div>
+  `;
+
+  return sendEmail({ to, subject, text, html });
+};
