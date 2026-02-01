@@ -78,6 +78,9 @@ export default function AdminOrderDetailPage() {
   const [newStatus, setNewStatus] = useState("")
   const [statusNotes, setStatusNotes] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
+  const [newPaymentStatus, setNewPaymentStatus] = useState("")
+  const [updatingPayment, setUpdatingPayment] = useState(false)
 
   useEffect(() => {
     if (!authLoading) {
@@ -103,6 +106,7 @@ export default function AdminOrderDetailPage() {
           const data = await response.json()
           setOrder(data)
           setNewStatus(data.status)
+          setNewPaymentStatus(data.paymentStatus)
         } else {
           toast({
             title: "Error",
@@ -174,6 +178,50 @@ export default function AdminOrderDetailPage() {
     }
   }
 
+  const handleUpdatePaymentStatus = async () => {
+    if (!order || newPaymentStatus === order.paymentStatus) return
+
+    setUpdatingPayment(true)
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/admin/${order.id}/payment`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          paymentStatus: newPaymentStatus,
+        }),
+      })
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Payment status updated successfully",
+        })
+        setIsPaymentDialogOpen(false)
+        // Refresh order data
+        window.location.reload()
+      } else {
+        const data = await response.json()
+        toast({
+          title: "Error",
+          description: data.message || "Failed to update payment status",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error updating payment status:", error)
+      toast({
+        title: "Error",
+        description: "An error occurred while updating payment status",
+        variant: "destructive",
+      })
+    } finally {
+      setUpdatingPayment(false)
+    }
+  }
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -240,57 +288,121 @@ export default function AdminOrderDetailPage() {
               <Badge className={`${getStatusColor(order.status)} flex items-center gap-2 text-sm sm:text-base px-3 sm:px-4 py-2 border-2`}>
                 {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
               </Badge>
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm" className="luxury-gradient">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Update Status
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Update Order Status</DialogTitle>
-                    <DialogDescription>
-                      Change the status of this order and add tracking notes.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="status">New Status</Label>
-                      <Select value={newStatus} onValueChange={setNewStatus}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="confirmed">Confirmed</SelectItem>
-                          <SelectItem value="processing">Processing</SelectItem>
-                          <SelectItem value="shipped">Shipped</SelectItem>
-                          <SelectItem value="delivered">Delivered</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="notes">Notes (Optional)</Label>
-                      <Textarea
-                        id="notes"
-                        placeholder="Add any notes about this status change..."
-                        value={statusNotes}
-                        onChange={(e) => setStatusNotes(e.target.value)}
-                        rows={3}
-                      />
-                    </div>
-                    <Button
-                      onClick={handleUpdateStatus}
-                      disabled={updating || newStatus === order.status}
-                      className="w-full"
-                    >
-                      {updating ? "Updating..." : "Update Status"}
+              {order.status !== "delivered" && order.status !== "cancelled" && (
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="luxury-gradient">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Update Status
                     </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Update Order Status</DialogTitle>
+                      <DialogDescription>
+                        Change the status of this order and add tracking notes.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="status">New Status</Label>
+                        <Select value={newStatus} onValueChange={setNewStatus}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {order.status === "pending" && (
+                              <>
+                                <SelectItem value="pending">Pending</SelectItem>
+                                <SelectItem value="confirmed">Confirmed</SelectItem>
+                                <SelectItem value="cancelled">Cancelled</SelectItem>
+                              </>
+                            )}
+                            {order.status === "confirmed" && (
+                              <>
+                                <SelectItem value="confirmed">Confirmed</SelectItem>
+                                <SelectItem value="processing">Processing</SelectItem>
+                                <SelectItem value="cancelled">Cancelled</SelectItem>
+                              </>
+                            )}
+                            {order.status === "processing" && (
+                              <>
+                                <SelectItem value="processing">Processing</SelectItem>
+                                <SelectItem value="shipped">Shipped</SelectItem>
+                                <SelectItem value="cancelled">Cancelled</SelectItem>
+                              </>
+                            )}
+                            {order.status === "shipped" && (
+                              <>
+                                <SelectItem value="shipped">Shipped</SelectItem>
+                                <SelectItem value="delivered">Delivered</SelectItem>
+                              </>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="notes">Notes (Optional)</Label>
+                        <Textarea
+                          id="notes"
+                          placeholder="Add any notes about this status change..."
+                          value={statusNotes}
+                          onChange={(e) => setStatusNotes(e.target.value)}
+                          rows={3}
+                        />
+                      </div>
+                      <Button
+                        onClick={handleUpdateStatus}
+                        disabled={updating || newStatus === order.status}
+                        className="w-full"
+                      >
+                        {updating ? "Updating..." : "Update Status"}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+              {(order.status === "delivered" || user?.role === "admin") && (
+                <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" variant="outline">
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Update Payment
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Update Payment Status</DialogTitle>
+                      <DialogDescription>
+                        Change the payment status for this order.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="paymentStatus">Payment Status</Label>
+                        <Select value={newPaymentStatus} onValueChange={setNewPaymentStatus}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="paid">Paid</SelectItem>
+                            <SelectItem value="failed">Failed</SelectItem>
+                            <SelectItem value="refunded">Refunded</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button
+                        onClick={handleUpdatePaymentStatus}
+                        disabled={updatingPayment || newPaymentStatus === order.paymentStatus}
+                        className="w-full"
+                      >
+                        {updatingPayment ? "Updating..." : "Update Payment Status"}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
             </div>
           </div>
         </div>

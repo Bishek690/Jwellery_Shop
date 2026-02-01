@@ -376,7 +376,7 @@ export function AdminSidebar({
                   <Crown className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h2 className="font-bold text-base lg:text-lg text-gray-900 truncate">Jewelry Shop</h2>
+                  <h2 className="font-bold text-base lg:text-lg text-gray-900 truncate">Jewellary Shop</h2>
                   <p className="text-xs lg:text-sm text-gray-600 flex items-center gap-1 truncate">
                     <Gem className="h-3 w-3 text-orange-500 flex-shrink-0" />
                     <span className="truncate">Management System</span>

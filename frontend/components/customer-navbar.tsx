@@ -60,10 +60,10 @@ export function CustomerNavbar() {
                 className="pl-7 pr-3 py-1.5 w-48 bg-muted/50 border-border/50 focus:border-primary focus:ring-1 focus:ring-primary/20 hover-glow transition-all duration-300 text-xs"
               />
             </div>
-            <Button variant="ghost" size="sm" className="hidden md:flex items-center space-x-1 sm:space-x-2 hover-glow">
+            {/* <Button variant="ghost" size="sm" className="hidden md:flex items-center space-x-1 sm:space-x-2 hover-glow">
               <Bell className="w-4 h-4" />
               <Badge className="bg-primary text-primary-foreground text-xs">2</Badge>
-            </Button>
+            </Button> */}
             <Link href="/account/wishlist">
               <Button variant="ghost" size="sm" className="hidden md:flex items-center space-x-1 sm:space-x-2 hover-glow">
                 <Heart className="w-4 h-4" />
@@ -111,11 +111,11 @@ export function CustomerNavbar() {
                 Collections
               </Link>
               <div className="flex flex-col xs:flex-row xs:items-center xs:space-x-4 space-y-2 xs:space-y-0 pt-2 border-t border-border/50">
-                <Button variant="ghost" size="sm" className="flex items-center space-x-2 justify-start text-xs">
+                {/* <Button variant="ghost" size="sm" className="flex items-center space-x-2 justify-start text-xs">
                   <Bell className="w-4 h-4" />
                   <span>Notifications</span>
                   <Badge className="bg-primary text-primary-foreground text-xs">2</Badge>
-                </Button>
+                </Button> */}
                 <Link href="/account/wishlist" className="w-full">
                   <Button variant="ghost" size="sm" className="flex items-center space-x-2 justify-start text-xs w-full">
                     <Heart className="w-4 h-4" />

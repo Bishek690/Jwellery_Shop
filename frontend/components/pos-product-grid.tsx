@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -11,15 +11,11 @@ interface Product {
   id: string
   name: string
   price: number
-  discountPrice?: number
   category: string
-  weight?: number | string
+  weight?: string
   purity?: string
-  metalType?: string
-  sku?: string
   image: string
-  inStock?: boolean
-  stock?: number
+  inStock: boolean
   featured?: boolean
 }
 
@@ -30,29 +26,6 @@ interface POSProductGridProps {
 export function POSProductGrid({ onAddToCart }: POSProductGridProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-
-  // Fetch real products from API
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch('/api/products', {
-          credentials: 'include'
-        })
-        if (response.ok) {
-          const data = await response.json()
-          setProducts(data.products || [])
-        }
-      } catch (error) {
-        console.error('Failed to fetch products:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    
-    fetchProducts()
-  }, [])
 
   const categories = [
     { id: "all", name: "All Items", icon: Star },
@@ -60,6 +33,71 @@ export function POSProductGrid({ onAddToCart }: POSProductGridProps) {
     { id: "rings", name: "Rings", icon: Gem },
     { id: "bangles", name: "Bangles", icon: Star },
     { id: "earrings", name: "Earrings", icon: Gem },
+  ]
+
+  const products: Product[] = [
+    {
+      id: "1",
+      name: "Diamond Necklace Set",
+      price: 285000,
+      category: "necklaces",
+      weight: "45g",
+      purity: "18K",
+      image: "/sparkling-diamond-necklace.png",
+      inStock: true,
+      featured: true,
+    },
+    {
+      id: "2",
+      name: "Gold Bangles Pair",
+      price: 145000,
+      category: "bangles",
+      weight: "65g",
+      purity: "22K",
+      image: "/gold-bangles.jpg",
+      inStock: true,
+    },
+    {
+      id: "3",
+      name: "Ruby Ring Collection",
+      price: 95000,
+      category: "rings",
+      weight: "12g",
+      purity: "18K",
+      image: "/ruby-rings.jpg",
+      inStock: true,
+      featured: true,
+    },
+    {
+      id: "4",
+      name: "Pearl Earrings",
+      price: 45000,
+      category: "earrings",
+      weight: "8g",
+      purity: "14K",
+      image: "/elegant-pearl-earrings.jpg",
+      inStock: true,
+    },
+    {
+      id: "5",
+      name: "Emerald Pendant",
+      price: 125000,
+      category: "necklaces",
+      weight: "25g",
+      purity: "18K",
+      image: "/emerald-pendant-necklace.png",
+      inStock: false,
+    },
+    {
+      id: "6",
+      name: "Silver Chain",
+      price: 15000,
+      category: "necklaces",
+      weight: "20g",
+      purity: "925",
+      image: "/silver-chain-necklace.png",
+      inStock: true,
+    },
   ]
 
   const filteredProducts = products.filter((product) => {

@@ -40,7 +40,7 @@ export default function LoginPage() {
         <CardHeader className="space-y-1 text-center">
           <div className="flex items-center justify-center mb-4">
             <Gem className="h-8 w-8 text-amber-600 mr-2" />
-            <h1 className="text-2xl font-bold text-amber-800">Jewelry Shop</h1>
+            <h1 className="text-2xl font-bold text-amber-800">Jewellary Shop</h1>
           </div>
           <CardTitle className="text-2xl font-bold text-gray-800">Welcome Back</CardTitle>
           <CardDescription className="text-gray-600">

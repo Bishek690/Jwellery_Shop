@@ -2,6 +2,7 @@ import { Request, Response } from "express"
 import { AppDataSource } from "../config/data-source"
 import { Order, OrderStatus, PaymentStatus, OrderItem, OrderTracking } from "../entity/Order"
 import { User } from "../entity/User"
+import { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail, sendPaymentConfirmationEmail } from "../utils/emailService"
 
 export class OrderController {
   // Create new order
@@ -89,6 +90,29 @@ export class OrderController {
       })
 
       await orderRepository.save(order)
+
+      // Send order confirmation email
+      try {
+        await sendOrderConfirmationEmail({
+          to: customer.email,
+          name: customer.name,
+          orderNumber: order.orderNumber,
+          totalAmount: order.totalAmount,
+          items: order.items,
+          shippingInfo: {
+            fullName: shippingInfo.fullName,
+            address: shippingInfo.address,
+            city: shippingInfo.city,
+            state: shippingInfo.state,
+            zipCode: shippingInfo.zipCode,
+            phone: shippingInfo.phone,
+          },
+        });
+        console.log(`Order confirmation email sent to ${customer.email}`);
+      } catch (emailError) {
+        console.error("Failed to send order confirmation email:", emailError);
+        // Don't fail the order creation if email fails
+      }
 
       res.status(201).json({
         message: "Order placed successfully",
@@ -222,11 +246,43 @@ export class OrderController {
 
       const order = await orderRepository.findOne({
         where: { id: orderId },
-        relations: ["tracking"],
+        relations: ["tracking", "customer"],
       })
 
       if (!order) {
         return res.status(404).json({ message: "Order not found" })
+      }
+
+      // Define status hierarchy
+      const statusHierarchy: { [key: string]: number } = {
+        [OrderStatus.PENDING]: 0,
+        [OrderStatus.CONFIRMED]: 1,
+        [OrderStatus.PROCESSING]: 2,
+        [OrderStatus.SHIPPED]: 3,
+        [OrderStatus.DELIVERED]: 4,
+        [OrderStatus.CANCELLED]: -1, // Special case
+      }
+
+      const currentStatusLevel = statusHierarchy[order.status]
+      const newStatusLevel = statusHierarchy[status]
+
+      // Prevent going back to a lower status (except for cancellation)
+      if (order.status === OrderStatus.DELIVERED) {
+        return res.status(400).json({ 
+          message: "Cannot change status of delivered orders. Update payment status if needed." 
+        })
+      }
+
+      if (order.status === OrderStatus.CANCELLED) {
+        return res.status(400).json({ 
+          message: "Cannot change status of cancelled orders" 
+        })
+      }
+
+      if (newStatusLevel !== -1 && currentStatusLevel > newStatusLevel) {
+        return res.status(400).json({ 
+          message: `Cannot change status from ${order.status} back to ${status}` 
+        })
       }
 
       // Update order status
@@ -241,6 +297,21 @@ export class OrderController {
         updatedById: userId,
       })
       await trackingRepository.save(tracking)
+
+      // Send order status update email
+      try {
+        await sendOrderStatusUpdateEmail({
+          to: order.customer.email,
+          name: order.customer.name,
+          orderNumber: order.orderNumber,
+          status: status,
+          notes: notes,
+        });
+        console.log(`Order status update email sent to ${order.customer.email}`);
+      } catch (emailError) {
+        console.error("Failed to send order status update email:", emailError);
+        // Don't fail the status update if email fails
+      }
 
       res.json({ message: "Order status updated successfully", order })
     } catch (error) {
@@ -261,14 +332,37 @@ export class OrderController {
 
       const orderRepository = AppDataSource.getRepository(Order)
 
-      const order = await orderRepository.findOne({ where: { id: orderId } })
+      const order = await orderRepository.findOne({ 
+        where: { id: orderId },
+        relations: ["customer"],
+      })
 
       if (!order) {
         return res.status(404).json({ message: "Order not found" })
       }
 
+      const previousPaymentStatus = order.paymentStatus
+
+      // Payment status can be updated at any time, especially important after delivery
       order.paymentStatus = paymentStatus
       await orderRepository.save(order)
+
+      // Send payment confirmation email when status changes to "paid"
+      if (paymentStatus === PaymentStatus.PAID && previousPaymentStatus !== PaymentStatus.PAID) {
+        try {
+          await sendPaymentConfirmationEmail({
+            to: order.customer.email,
+            name: order.customer.name,
+            orderNumber: order.orderNumber,
+            totalAmount: order.totalAmount,
+            paymentMethod: order.paymentMethod,
+          });
+          console.log(`Payment confirmation email sent to ${order.customer.email}`);
+        } catch (emailError) {
+          console.error("Failed to send payment confirmation email:", emailError);
+          // Don't fail the payment status update if email fails
+        }
+      }
 
       res.json({ message: "Payment status updated successfully", order })
     } catch (error) {
