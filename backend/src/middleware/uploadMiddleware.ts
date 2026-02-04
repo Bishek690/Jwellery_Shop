@@ -9,6 +9,12 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
+// Ensure bills directory exists
+const billsDir = path.join(process.cwd(), 'uploads', 'bills');
+if (!fs.existsSync(billsDir)) {
+  fs.mkdirSync(billsDir, { recursive: true });
+}
+
 // Configure storage
 const storage = multer.diskStorage({
   destination: (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
@@ -42,8 +48,33 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
+// Configure multer for bills
+const billStorage = multer.diskStorage({
+  destination: (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
+    cb(null, billsDir);
+  },
+  filename: (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(2, 15);
+    const extension = path.extname(file.originalname);
+    const filename = `bill_${timestamp}_${randomString}${extension}`;
+    cb(null, filename);
+  }
+});
+
+const billUpload = multer({
+  storage: billStorage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: fileFilter
+});
+
 // Middleware for single image upload
 export const uploadSingleImage = upload.single('image');
+
+// Middleware for bill image upload
+export const uploadBillImage = billUpload.single('billImage');
 
 // Middleware for multiple images upload
 export const uploadMultipleImages = upload.array('images', 5); // Max 5 images

@@ -266,7 +266,7 @@ export function InventoryProductTable({ onEditProduct, onDeleteProduct, onViewPr
                       <div className="flex items-center gap-3">
                         <Avatar className="h-12 w-12 flex-shrink-0">
                           <AvatarImage 
-                            src={product.image ? `http://localhost:4000${product.image}` : ''} 
+                            src={product.image ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${product.image}` : ''} 
                             alt={product.name} 
                           />
                           <AvatarFallback>

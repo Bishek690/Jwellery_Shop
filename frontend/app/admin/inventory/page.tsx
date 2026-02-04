@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { InventoryStats } from "@/components/inventory-stats"
 import { InventoryProductTable } from "@/components/inventory-product-table"
+import { RawMetalStockTable } from "@/components/raw-metal-stock-table"
 import { AdminLayout } from "@/components/admin/layout/admin-layout"
 import { Button } from "@/components/ui/button"
 import { 
@@ -14,10 +15,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
-import { Package, Plus } from "lucide-react"
+import { Package, Plus, Layers } from "lucide-react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function InventoryPage() {
   const router = useRouter()
@@ -25,6 +27,7 @@ export default function InventoryPage() {
   const [deleteProductId, setDeleteProductId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [activeTab, setActiveTab] = useState("products")
 
   const handleEdit = (product: any) => {
     router.push(`/admin/inventory/edit/${product.id}`)
@@ -63,32 +66,57 @@ export default function InventoryPage() {
   return (
     <div>
       <div className="w-full space-y-4 sm:space-y-6 lg:space-y-8">
-        {/* Action Bar */}
-        <div className="flex justify-end">
-          <Link href="/admin/inventory/add">
-            <Button 
-              size="sm" 
-              className="luxury-gradient hover:shadow-lg transition-all duration-300 animate-glow whitespace-nowrap text-xs sm:text-sm"
-            >
-              <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              <span className="hidden xs:inline">Add Product</span>
-              <span className="xs:hidden">Add</span>
-            </Button>
-          </Link>
-        </div>
+        {/* Tab Navigation */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <TabsList className="grid w-full sm:w-auto grid-cols-2">
+              <TabsTrigger value="products" className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                <span>Products</span>
+              </TabsTrigger>
+              <TabsTrigger value="raw-metals" className="flex items-center gap-2">
+                <Layers className="h-4 w-4" />
+                <span>Raw Metals</span>
+              </TabsTrigger>
+            </TabsList>
 
-        {/* Stats Section */}
-        <InventoryStats />
+            {activeTab === "products" && (
+              <Link href="/admin/inventory/add">
+                <Button 
+                  size="sm" 
+                  className="luxury-gradient hover:shadow-lg transition-all duration-300 animate-glow whitespace-nowrap text-xs sm:text-sm"
+                >
+                  <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden xs:inline">Add Product</span>
+                  <span className="xs:hidden">Add</span>
+                </Button>
+              </Link>
+            )}
+          </div>
 
-        {/* Product Table */}
-        <div className="w-full overflow-hidden rounded-lg sm:rounded-xl">
-          <InventoryProductTable 
-            key={refreshKey}
-            onEditProduct={handleEditProduct}
-            onDeleteProduct={(id) => setDeleteProductId(id)}
-            onViewProduct={handleViewProduct}
-          />
-        </div>
+          {/* Products Tab */}
+          <TabsContent value="products" className="space-y-4 sm:space-y-6">
+            {/* Stats Section */}
+            <InventoryStats />
+
+            {/* Product Table */}
+            <div className="w-full overflow-hidden rounded-lg sm:rounded-xl">
+              <InventoryProductTable 
+                key={refreshKey}
+                onEditProduct={handleEditProduct}
+                onDeleteProduct={(id) => setDeleteProductId(id)}
+                onViewProduct={handleViewProduct}
+              />
+            </div>
+          </TabsContent>
+
+          {/* Raw Metals Tab */}
+          <TabsContent value="raw-metals" className="space-y-4 sm:space-y-6">
+            <RawMetalStockTable 
+              onRefresh={() => setRefreshKey(prev => prev + 1)}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* View Product Dialog */}
@@ -105,7 +133,7 @@ export default function InventoryPage() {
                 <div className="flex justify-center">
                   <div className="w-48 h-48 rounded-lg overflow-hidden bg-gray-100">
                     <img 
-                      src={`http://localhost:4000${viewProduct.image}`} 
+                      src={`${process.env.NEXT_PUBLIC_API_URL}/${viewProduct.image}`} 
                       alt={viewProduct.name}
                       className="w-full h-full object-cover"
                     />

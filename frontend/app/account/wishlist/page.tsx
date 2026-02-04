@@ -145,7 +145,7 @@ export default function WishlistPage() {
               <Card key={item.id} className="hover-lift hover-glow">
                 <div className="relative">
                   <img
-                    src={item.image ? `http://localhost:4000${item.image}` : "/placeholder.svg"}
+                    src={item.image ? `${process.env.NEXT_PUBLIC_API_URL}/${item.image}` : "/placeholder.svg"}
                     alt={item.name}
                     className="w-full h-48 object-cover rounded-t-lg"
                   />

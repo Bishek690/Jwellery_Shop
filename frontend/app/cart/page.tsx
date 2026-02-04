@@ -121,7 +121,7 @@ export default function CartPage() {
                       {/* Product Image */}
                       <div className="relative mb-3">
                         <img
-                          src={item.image ? `http://localhost:4000${item.image}` : "/placeholder.svg"}
+                          src={item.image ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${item.image}` : "/placeholder.svg"}
                           alt={item.name}
                           className="w-full h-32 sm:h-40 md:h-48 object-cover rounded-lg gold-shimmer"
                         />

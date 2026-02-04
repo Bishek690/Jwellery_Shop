@@ -1,7 +1,7 @@
 // API Configuration for Frontend Integration
 // Place this file in your frontend project (e.g., lib/api.ts)
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 
 // API Client Configuration
 export const apiClient = {

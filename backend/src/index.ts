@@ -12,6 +12,8 @@ import orderRoutes from "./routes/orderRoutes";
 import reviewRoutes from "./routes/reviewRoutes";
 import contactRoutes from "./routes/contactRoutes";
 import metalPriceRoutes from "./routes/metalPriceRoutes";
+import rawMetalStockRoutes from "./routes/rawMetalStockRoutes";
+import salesRecordRoutes from "./routes/salesRecordRoutes";
 
 require("dotenv").config();
 
@@ -66,6 +68,8 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/metal-prices", metalPriceRoutes);
+app.use("/api/raw-metal-stocks", rawMetalStockRoutes);
+app.use("/api/sales-records", salesRecordRoutes);
 
 // Global error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

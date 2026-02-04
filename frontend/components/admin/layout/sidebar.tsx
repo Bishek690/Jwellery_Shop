@@ -30,6 +30,7 @@ import {
   ChevronDown,
   ChevronUp,
   Star,
+  Receipt,
 } from "lucide-react"
 
 interface AdminSidebarProps {
@@ -167,6 +168,13 @@ export function AdminSidebar({
       // badge: orderCount,
       badgeColor: "secondary",
       permission: ["admin", "staff"]
+    },
+    {
+      id: "sales-records",
+      label: "Sales Records",
+      icon: Receipt,
+      href: "/admin/sales-records",
+      permission: ["admin", "staff"],
     },
     {
       id: "analytics",

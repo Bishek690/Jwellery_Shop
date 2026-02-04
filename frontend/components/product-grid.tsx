@@ -246,7 +246,7 @@ export function ProductGrid({
           >
             <div className="relative overflow-hidden rounded-t-lg">
               <img
-                src={product.image ? `http://localhost:4000${product.image}` : "/placeholder.svg"}
+                src={product.image ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${product.image}` : "/placeholder.svg"}
                 alt={product.name}
                 className="w-full h-48 sm:h-56 lg:h-64 object-cover group-hover:scale-105 transition-transform duration-300 gold-shimmer"
               />
@@ -371,7 +371,7 @@ export function ProductGrid({
               <div className="grid md:grid-cols-2 gap-6 mt-4">
                 <div className="relative">
                   <img
-                    src={selectedProduct.image ? `http://localhost:4000${selectedProduct.image}` : "/placeholder.svg"}
+                    src={selectedProduct.image ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${selectedProduct.image}` : "/placeholder.svg"}
                     alt={selectedProduct.name}
                     className="w-full h-auto rounded-lg object-cover"
                   />

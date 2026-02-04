@@ -131,7 +131,7 @@ export default function EditProductPage() {
 
         if (product.image) {
           // Use BACKEND_URL without /api suffix for static files
-          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'
+          const backendUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}`
           setImagePreview(`${backendUrl}${product.image}`)
         }
       } catch (error: any) {
@@ -176,7 +176,7 @@ export default function EditProductPage() {
 
   const removeImage = () => {
     setFormData(prev => ({ ...prev, image: undefined }))
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'
+    const backendUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}`
     setImagePreview(formData.currentImage ? `${backendUrl}${formData.currentImage}` : null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
