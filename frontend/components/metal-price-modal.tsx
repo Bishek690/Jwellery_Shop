@@ -27,6 +27,7 @@ export function MetalPriceModal({ open, onClose, onSuccess }: MetalPriceModalPro
   const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState<string>('')
   
   const [formData, setFormData] = useState({
     goldPricePerTola: "",
@@ -57,6 +58,21 @@ export function MetalPriceModal({ open, onClose, onSuccess }: MetalPriceModalPro
           whiteGoldPricePerTola: data.whiteGoldPricePerTola?.toString() || "",
           diamondPricePerCarat: data.diamondPricePerCarat?.toString() || ""
         })
+        
+        // Set the last updated date
+        if (data.updatedAt || data.createdAt) {
+          const updateDate = new Date(data.updatedAt || data.createdAt)
+          const formatted = updateDate.toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+          setLastUpdated(formatted)
+        } else {
+          setLastUpdated('Never updated')
+        }
       }
     } catch (error) {
       console.error("Error fetching prices:", error)
@@ -131,6 +147,11 @@ export function MetalPriceModal({ open, onClose, onSuccess }: MetalPriceModalPro
           </DialogTitle>
           <DialogDescription>
             Enter today's market prices. Prices are per tola for metals (11.66 grams) and per carat for diamonds.
+            {lastUpdated && (
+              <div className="mt-2 text-sm text-gray-600">
+                <strong>Last Updated:</strong> {lastUpdated}
+              </div>
+            )}
           </DialogDescription>
         </DialogHeader>
 

@@ -12,28 +12,41 @@ interface MetalPrice {
   roseGoldPricePerTola: number
   whiteGoldPricePerTola: number
   diamondPricePerCarat: number
+  createdAt?: string
   updatedAt?: string
 }
 
 export function MetalPriceDisplay() {
   const [prices, setPrices] = useState<MetalPrice | null>(null)
   const [loading, setLoading] = useState(true)
-  const [currentDate, setCurrentDate] = useState<string>('')
+  const [lastUpdateDate, setLastUpdateDate] = useState<string>('')
+  const [isToday, setIsToday] = useState(false)
 
   useEffect(() => {
     fetchPrices()
-    // Update the current date on mount
-    updateCurrentDate()
   }, [])
 
-  const updateCurrentDate = () => {
-    const today = new Date()
-    const formatted = today.toLocaleDateString('en-US', {
+  const formatUpdateDate = (dateString?: string) => {
+    if (!dateString) {
+      return 'Not updated'
+    }
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric'
     })
-    setCurrentDate(formatted)
+  }
+
+  const isDateToday = (dateString?: string) => {
+    if (!dateString) return false
+    
+    const updateDate = new Date(dateString)
+    const today = new Date()
+    
+    return updateDate.getDate() === today.getDate() &&
+           updateDate.getMonth() === today.getMonth() &&
+           updateDate.getFullYear() === today.getFullYear()
   }
 
   const fetchPrices = async () => {
@@ -42,6 +55,10 @@ export function MetalPriceDisplay() {
       if (response.ok) {
         const data = await response.json()
         setPrices(data)
+        // Use updatedAt (when price was last modified) or createdAt (when price was first set)
+        const updateDate = data.updatedAt || data.createdAt
+        setLastUpdateDate(formatUpdateDate(updateDate))
+        setIsToday(isDateToday(updateDate))
       }
     } catch (error) {
       console.error("Error fetching prices:", error)
@@ -68,8 +85,12 @@ export function MetalPriceDisplay() {
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Today's Prices</h3>
-            <p className="text-xs text-gray-600">{currentDate}</p>
+            <h3 className="text-sm font-semibold text-gray-900">
+              {isToday ? "Today's Metal Prices" : "Metal Prices"}
+            </h3>
+            <p className="text-xs text-gray-600">
+              {isToday ? lastUpdateDate : `Updated: ${lastUpdateDate}`}
+            </p>
           </div>
           <Badge variant="secondary" className="bg-orange-100 text-orange-700 text-xs">
             Live

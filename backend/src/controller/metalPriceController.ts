@@ -22,11 +22,23 @@ export const getCurrentPrices = async (req: Request, res: Response) => {
         roseGoldPricePerTola: 0,
         whiteGoldPricePerTola: 0,
         diamondPricePerCarat: 0,
+        createdAt: null,
+        updatedAt: null,
         message: "No prices set yet"
       });
     }
 
-    res.json(currentPrice);
+    // Return with timestamps to show when prices were last updated
+    res.json({
+      goldPricePerTola: currentPrice.goldPricePerTola,
+      silverPricePerTola: currentPrice.silverPricePerTola,
+      platinumPricePerTola: currentPrice.platinumPricePerTola,
+      roseGoldPricePerTola: currentPrice.roseGoldPricePerTola,
+      whiteGoldPricePerTola: currentPrice.whiteGoldPricePerTola,
+      diamondPricePerCarat: currentPrice.diamondPricePerCarat,
+      createdAt: currentPrice.createdAt,
+      updatedAt: currentPrice.updatedAt
+    });
   } catch (error) {
     console.error("Error fetching metal prices:", error);
     res.status(500).json({ message: "Failed to fetch metal prices" });
