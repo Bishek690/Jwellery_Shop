@@ -74,7 +74,7 @@ export const getProducts = async (req: Request, res: Response) => {
 
     if (search) {
       queryBuilder.andWhere(
-        '(product.name ILIKE :search OR product.description ILIKE :search OR product.sku ILIKE :search)',
+        '(product.name LIKE :search OR product.description LIKE :search OR product.sku LIKE :search)',
         { search: `%${search}%` }
       );
     }

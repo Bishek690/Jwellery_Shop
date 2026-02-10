@@ -39,7 +39,7 @@ export class Product {
   @Column({ unique: true })
   sku!: string;
 
-  @Column()
+  @Column("text")
   description!: string;
 
   @Column({ type: "enum", enum: ProductCategory })
@@ -77,12 +77,6 @@ export class Product {
 
   @Column({ nullable: true })
   image?: string;
-
-  @Column("json", { nullable: true })
-  images?: string[]; // Array of image URLs
-
-  @Column("json", { nullable: true })
-  specifications?: Record<string, any>; // Additional specifications
 
   @Column({ default: true })
   isActive!: boolean;

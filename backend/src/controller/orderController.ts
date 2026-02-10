@@ -1,8 +1,9 @@
 import { Request, Response } from "express"
 import { AppDataSource } from "../config/data-source"
 import { Order, OrderStatus, PaymentStatus, OrderItem, OrderTracking } from "../entity/Order"
-import { User } from "../entity/User"
+import { User, UserRole } from "../entity/User"
 import { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail, sendPaymentConfirmationEmail } from "../utils/emailService"
+import bcrypt from "bcryptjs"
 
 export class OrderController {
   // Create new order
@@ -45,9 +46,9 @@ export class OrderController {
         orderNumber,
         customer,
         customerId: userId,
-        subtotal,
-        shippingCost,
-        totalAmount,
+        subtotal: parseFloat(String(subtotal)),
+        shippingCost: parseFloat(String(shippingCost)),
+        totalAmount: parseFloat(String(totalAmount)),
         paymentMethod,
         paymentStatus: paymentMethod === "cod" ? PaymentStatus.PENDING : PaymentStatus.PENDING,
         status: OrderStatus.PENDING,
@@ -450,6 +451,158 @@ export class OrderController {
     } catch (error) {
       console.error("Error cancelling order:", error)
       res.status(500).json({ message: "Error cancelling order", error: error instanceof Error ? error.message : "Unknown error" })
+    }
+  }
+
+  // Create offline order (admin/staff)
+  static async createOfflineOrder(req: Request, res: Response) {
+    try {
+      const staffUserId = (req as any).user.id
+      const {
+        customerId,
+        customerInfo, // For new customers: { name, email, phone }
+        items,
+        subtotal,
+        shippingCost,
+        totalAmount,
+        paymentMethod,
+        paymentStatus,
+        status,
+        shippingInfo,
+        notes,
+      } = req.body
+
+      // Validate required fields
+      if (!items || items.length === 0) {
+        return res.status(400).json({ message: "Order must contain at least one item" })
+      }
+
+      if (!shippingInfo.fullName || !shippingInfo.phone || !shippingInfo.address || !shippingInfo.city) {
+        return res.status(400).json({ message: "Missing required shipping information" })
+      }
+
+      const orderRepository = AppDataSource.getRepository(Order)
+      const userRepository = AppDataSource.getRepository(User)
+
+      let customer: User | null = null
+
+      // If customerId is provided, use existing customer
+      if (customerId) {
+        customer = await userRepository.findOne({ where: { id: customerId } })
+        if (!customer) {
+          return res.status(404).json({ message: "Customer not found" })
+        }
+      } else if (customerInfo) {
+        // Create new customer for offline order
+        // First check by email
+        let existingUser = await userRepository.findOne({ where: { email: customerInfo.email } })
+        
+        // If not found by email, check by phone (if phone exists)
+        if (!existingUser && customerInfo.phone) {
+          existingUser = await userRepository.findOne({ where: { phone: customerInfo.phone } })
+        }
+        
+        if (existingUser) {
+          customer = existingUser
+        } else {
+          // Create a basic customer account with hashed random password
+          const randomPassword = Math.random().toString(36).slice(-8)
+          const hashedPassword = await bcrypt.hash(randomPassword, 10)
+          
+          // Generate unique phone if not provided or already exists
+          let uniquePhone = customerInfo.phone
+          if (!uniquePhone || await userRepository.findOne({ where: { phone: uniquePhone } })) {
+            // Generate a unique placeholder phone
+            uniquePhone = `OFFLINE-${Date.now()}-${Math.floor(Math.random() * 10000)}`
+          }
+          
+          customer = userRepository.create({
+            name: customerInfo.name,
+            email: customerInfo.email,
+            phone: uniquePhone,
+            password: hashedPassword, // Hashed random password (they can reset later)
+            role: UserRole.CUSTOMER,
+          })
+          await userRepository.save(customer)
+        }
+      } else {
+        return res.status(400).json({ message: "Either customerId or customerInfo is required" })
+      }
+
+      // Generate order number with OFFLINE prefix
+      const orderNumber = `OFFLINE-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+
+      // Create order
+      const order = orderRepository.create({
+        orderNumber,
+        customer,
+        // customerId: customer.id,
+        subtotal: parseFloat(String(subtotal)),
+        shippingCost: parseFloat(String(shippingCost)),
+        totalAmount: parseFloat(String(totalAmount)),
+        paymentMethod: paymentMethod || "cod",
+        paymentStatus: paymentStatus || PaymentStatus.PENDING,
+        status: status || OrderStatus.CONFIRMED,
+        shippingName: shippingInfo.fullName,
+        shippingPhone: shippingInfo.phone,
+        shippingEmail: shippingInfo.email || null,
+        shippingAddress: shippingInfo.address,
+        shippingCity: shippingInfo.city,
+        shippingState: shippingInfo.state || null,
+        shippingZipCode: shippingInfo.zipCode || null,
+        notes: notes ? `[OFFLINE ORDER] ${notes}` : "[OFFLINE ORDER]",
+        items: items.map((item: any) => {
+          const parsedId = parseInt(String(item.id || 0))
+          const parsedWeight = parseFloat(String(item.weight || 0))
+          const parsedPrice = parseFloat(String(item.price || 0))
+          const parsedDiscountPrice = item.discountPrice ? parseFloat(String(item.discountPrice)) : null
+          const parsedQuantity = parseInt(String(item.quantity || 1))
+          
+          // For custom products (with very large IDs from Date.now()), set productId to 0
+          const productId = isNaN(parsedId) ? 0 : (parsedId > 2147483647 ? 0 : parsedId)
+          
+          return {
+            productId: productId,
+            productName: item.name || "",
+            productSku: item.sku || "",
+            productCategory: item.category || null,
+            productImage: item.image || null,
+            metalType: item.metalType || "",
+            purity: item.purity || "",
+            weight: isNaN(parsedWeight) ? 0 : parsedWeight,
+            price: isNaN(parsedPrice) ? 0 : parsedPrice,
+            discountPrice: parsedDiscountPrice && !isNaN(parsedDiscountPrice) ? parsedDiscountPrice : null,
+            quantity: isNaN(parsedQuantity) ? 1 : parsedQuantity,
+            totalPrice: (item.discountPrice || item.price) * (item.quantity || 1),
+          }
+        }),
+        tracking: [{
+          status: status || OrderStatus.CONFIRMED,
+          notes: notes ? `Offline order created: ${notes}` : "Offline order created by staff",
+          updatedBy: await userRepository.findOne({ where: { id: staffUserId } }) || undefined,
+          updatedById: staffUserId,
+        }],
+      })
+
+      await orderRepository.save(order)
+
+      res.status(201).json({
+        message: "Offline order created successfully",
+        order: {
+          id: order.id,
+          orderNumber: order.orderNumber,
+          totalAmount: order.totalAmount,
+          status: order.status,
+          customer: {
+            id: customer.id,
+            name: customer.name,
+            email: customer.email,
+          },
+        },
+      })
+    } catch (error) {
+      console.error("Error creating offline order:", error)
+      res.status(500).json({ message: "Error creating offline order", error: error instanceof Error ? error.message : "Unknown error" })
     }
   }
 }

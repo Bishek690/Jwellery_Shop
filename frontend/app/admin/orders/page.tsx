@@ -22,10 +22,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Package, Eye, Search, Filter, TrendingUp, Clock, CheckCircle, XCircle, Truck } from "lucide-react"
+import { Package, Eye, Search, Filter, TrendingUp, Clock, CheckCircle, XCircle, Truck, Plus } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
+import { OfflineOrderDialog } from "@/components/admin/offline-order-dialog"
 
 interface Order {
   id: number
@@ -64,6 +65,7 @@ export default function AdminOrdersPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [showOfflineOrderDialog, setShowOfflineOrderDialog] = useState(false)
 
   useEffect(() => {
     if (!authLoading) {
@@ -172,12 +174,23 @@ export default function AdminOrdersPage() {
       <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="animate-fade-in-scale">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-serif text-gray-900 mb-2">
-            Order Management
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600">
-            Manage and track all customer orders
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-2">
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-serif text-gray-900 mb-2">
+                Order Management
+              </h1>
+              <p className="text-sm sm:text-base text-gray-600">
+                Manage and track all customer orders
+              </p>
+            </div>
+            <Button 
+              onClick={() => setShowOfflineOrderDialog(true)}
+              className="luxury-gradient hover:shadow-xl transition-all duration-300"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create Offline Order
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -366,6 +379,16 @@ export default function AdminOrdersPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Offline Order Dialog */}
+      <OfflineOrderDialog
+        open={showOfflineOrderDialog}
+        onClose={() => setShowOfflineOrderDialog(false)}
+        onSuccess={() => {
+          // Refresh orders list
+          window.location.reload()
+        }}
+      />
     </>
   )
 }

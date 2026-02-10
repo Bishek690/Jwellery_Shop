@@ -12,6 +12,8 @@ export enum OrderStatus {
 
 export enum PaymentMethod {
   COD = "cod",
+  CASH = "cash",
+  CARD = "card",
   ONLINE = "online",
 }
 
