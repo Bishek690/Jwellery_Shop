@@ -18,7 +18,7 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
     if (pathname?.includes('/analytics')) return 'Analytics'
     if (pathname?.includes('/users')) return 'Users'
     if (pathname?.includes('/orders')) return 'Orders'
-    if (pathname?.includes('/pos')) return 'POS'
+    if (pathname?.includes('/credit-debit')) return 'Credit/Debit Records'
     if (pathname?.includes('/settings')) return 'Settings'
     return 'Dashboard'
   }

@@ -198,11 +198,11 @@ export function AdminSidebar({
       permission: ["admin", "staff"],
     },
     {
-      id: "pos",
-      label: "POS System",
-      icon: ShoppingCart,
-      href: "/admin/pos",
-      permission: ["admin", "staff", "accountant"],
+      id: "credit-debit",
+      label: "Credit/Debit Records",
+      icon: Receipt,
+      href: "/admin/credit-debit",
+      permission: ["admin"],
     },
     {
       id: "website",

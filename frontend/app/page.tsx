@@ -749,7 +749,7 @@ export default function CustomerLandingPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-sm sm:text-base">Address</h3>
-                    <p className="text-gray-600 text-xs sm:text-sm lg:text-base">New Road, Kathmandu, Nepal</p>
+                    <p className="text-gray-600 text-xs sm:text-sm lg:text-base">Amarpath, Butwal, Nepal</p>
                   </div>
                 </div>
 
@@ -759,7 +759,7 @@ export default function CustomerLandingPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-sm sm:text-base">Phone</h3>
-                    <p className="text-gray-600 text-xs sm:text-sm lg:text-base">+977-1-4567890</p>
+                    <p className="text-gray-600 text-xs sm:text-sm lg:text-base">+977-9867276746</p>
                   </div>
                 </div>
 
